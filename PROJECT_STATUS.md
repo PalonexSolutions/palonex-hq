@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-Brand refinement within Phase 2.
+Milestone 3 introduces PaLoNex Engineering Tools.
 
 ## Completed
 
@@ -14,15 +14,16 @@ Brand refinement within Phase 2.
 - Added matte-black and warm-ivory themes with shared champagne-gold tokens. The navigation toggle persists the explicit preference and the initial paint follows the saved or OS preference.
 - Baseline metadata, canonical URLs, sitemap and robots directives.
 - Environment, architecture, design, deployment and testing documentation.
+- Built the Engineering Tools directory and eight browser-local utilities for JSON, CSV, text diff, Base64, URLs, SHA-256, UUIDs and text processing.
 
 ## Partially complete
 
 - Company narrative and initial destination pages. Leadership and approved company copy require founder input.
-- Business enquiries and engineering tools are introduced on the homepage.
+- Business enquiries are introduced on the homepage.
 
 ## Pending
 
-- Insights, expanded PaLoLabs content, dedicated InternHub and Connect pages, engineering tools and persistent enquiries.
+- Insights, expanded PaLoLabs content, dedicated InternHub and Connect pages, and persistent enquiries.
 - Supabase-backed administration, formal launch checks and deployment.
 - Founder input on leadership profiles, approved public contact details and enquiry handling.
 
@@ -37,11 +38,10 @@ The public foundation requires no runtime environment variables. See [technical 
 
 ## Next recommended task
 
-Finish Phase 2 with Insights, expanded PaLoLabs content, and dedicated InternHub and Connect introductions.
+Add a validated enquiry workflow with spam controls and persistent storage. Insights, expanded PaLoLabs and dedicated InternHub and Connect introductions remain on the roadmap.
 
 ## Verification
 
-- ESLint, TypeScript and the production build passed.
-- All 30 desktop and mobile Chromium checks passed. Coverage includes all existing public pages in both themes, initial theme selection, persistence, keyboard operation, logo proportions and existing product navigation.
-- The official PNGs retain their source dimensions and alpha properties. Checked text contrast for the shared text and surface tokens in both themes.
-- Reviewed desktop and mobile screenshots of the homepage, catalog, a product detail page and shared footer in both themes.
+- All 8 unit tests and 50 desktop/mobile Chromium checks passed, along with ESLint, TypeScript and the production build.
+- Reviewed desktop and mobile captures in both themes and checked every tool route for horizontal overflow.
+- All tools process data locally. See [architecture](PROJECT_ARCHITECTURE.md) for input limits, privacy and extension points.

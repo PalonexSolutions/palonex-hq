@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   ["About", "/about"], ["Products", "/products"], ["PaLoLabs", "/labs"],
-  ["Opportunities", "/opportunities"],
+  ["Opportunities", "/opportunities"], ["Tools", "/tools"],
 ] as const;
 
 function Brand() {

@@ -65,7 +65,7 @@ export default function Home() {
       <section className="section shell">
         <div className="card-grid three">
           <article className="card"><FlaskConical className="accent" aria-hidden /><h3>PaLoLabs</h3><p>Our research and innovation direction across applied AI, accessibility and engineering.</p><Link className="text-link" href="/labs">Explore PaLoLabs <ArrowRight size={16} aria-hidden /></Link></article>
-          <article className="card"><Terminal className="accent" aria-hidden /><h3>Engineering tools</h3><p>Planned browser tools include a JSON formatter, a text and data converter, and a unit converter.</p></article>
+          <article className="card"><Terminal className="accent" aria-hidden /><h3>Engineering tools</h3><p>Format JSON, convert data, compare text and use secure browser utilities.</p><Link className="text-link" href="/tools">Open Engineering Tools <ArrowRight size={16} aria-hidden /></Link></article>
           <article className="card"><GraduationCap className="accent" aria-hidden /><h3>Learning and opportunity</h3><p>Explore our plans for practical projects, internships and a learning platform for students.</p><Link className="text-link" href="/opportunities">Explore opportunities <ArrowRight size={16} aria-hidden /></Link></article>
         </div>
       </section>
