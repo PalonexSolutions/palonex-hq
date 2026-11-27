@@ -5,3 +5,5 @@ Use Node 24. The version used for the initial foundation is recorded in `.nvmrc`
 If the workspace permits writes only below the checkout and /tmp, use `npm ci --cache /tmp/palonex-npm-cache`.
 
 The public foundation runs without runtime variables. See `.env.example`. Keep future private values in the environment or in a local ignored `.env.local`.
+
+For PostgreSQL, enquiries and the optional email worker, follow [Backend setup](BACKEND_SETUP.md). The informational routes and browser-local tools can still run without backend configuration.

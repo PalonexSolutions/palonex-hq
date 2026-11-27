@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-Milestone 3 introduces PaLoNex Engineering Tools.
+Milestone 4 establishes the shared backend and business enquiries.
 
 ## Completed
 
@@ -16,32 +16,36 @@ Milestone 3 introduces PaLoNex Engineering Tools.
 - Environment, architecture, design, deployment and testing documentation.
 - Built the Engineering Tools directory and eight browser-local utilities for JSON, CSV, text diff, Base64, URLs, SHA-256, UUIDs and text processing.
 
+- Built PostgreSQL migrations, private schema, enquiry form, validation, rate limits, consent, server-only enquiry access and a durable email outbox.
+
 ## Partially complete
 
 - Company narrative and initial destination pages. Leadership and approved company copy require founder input.
-- Business enquiries are introduced on the homepage.
+- The Resend adapter is implemented. Production delivery and the scheduler await configuration.
 
 ## Pending
 
-- Insights, expanded PaLoLabs content, dedicated InternHub and Connect pages, and persistent enquiries.
+- Insights, expanded PaLoLabs content, and dedicated InternHub and Connect pages.
 - Supabase-backed administration, formal launch checks and deployment.
 - Founder input on leadership profiles, approved public contact details and enquiry handling.
 
 ## Known issues
 
-- Business enquiries are informational while the submission flow is pending. All seven products are concepts and have no launch dates.
+- Production database and email settings still need provisioning and smoke tests. Access to enquiry records currently requires approved server-side database access.
 - Final accessibility, performance and production checks belong to the release milestone.
 
 ## Environment and decisions
 
-The public foundation requires no runtime environment variables. See [technical decisions](DECISIONS.md) for architecture and Git workflow.
+See [backend setup](BACKEND_SETUP.md) for database, email, scheduler and retention settings.
 
 ## Next recommended task
 
-Add a validated enquiry workflow with spam controls and persistent storage. Insights, expanded PaLoLabs and dedicated InternHub and Connect introductions remain on the roadmap.
+Configure and validate the production backend, then add authenticated administration for authorized staff.
 
 ## Verification
 
-- All 8 unit tests and 50 desktop/mobile Chromium checks passed, along with ESLint, TypeScript and the production build.
-- Reviewed desktop and mobile captures in both themes and checked every tool route for horizontal overflow.
-- All tools process data locally. See [architecture](PROJECT_ARCHITECTURE.md) for input limits, privacy and extension points.
+- ESLint, TypeScript, production build, 12 unit tests, 4 PostgreSQL integration tests and 54 desktop/mobile Playwright checks passed.
+- A clean PostgreSQL 17 database accepted the migration and a second migration run performed no changes.
+- Verified persistent form submissions, duplicate retry handling, rate limits, pagination, controlled transitions and email retries with a mock provider.
+- A database-outage browser smoke test confirmed generic 503 responses and preservation of form data for retry.
+- The production dependency audit reported zero vulnerabilities. Production database, DNS, scheduler and real mail delivery remain unverified.

@@ -4,7 +4,7 @@ const url = "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./tests",
-  testIgnore: "**/unit/**",
+  testIgnore: ["**/unit/**", "**/integration/**"],
   use: {
     baseURL: url,
     launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE

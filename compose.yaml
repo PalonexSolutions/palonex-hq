@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: palonex
+      POSTGRES_USER: palonex
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "127.0.0.1:${PALONEX_DB_PORT:-5433}:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U palonex -d palonex"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+volumes:
+  postgres:

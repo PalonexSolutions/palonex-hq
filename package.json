@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
-    "test:unit": "node --test tests/unit/*.test.ts"
+    "test:unit": "node --conditions=react-server --test tests/unit/*.test.ts",
+    "db:migrate": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/migrate.ts",
+    "db:prune": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/prune.ts",
+    "test:integration": "node --conditions=react-server --test tests/integration/*.test.ts"
   },
   "engines": {
     "node": "24.x"
@@ -18,13 +21,17 @@
     "@tailwindcss/postcss": "^4.3.5",
     "lucide-react": "^1.82.0",
     "next": "^16.4.6",
+    "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "tailwindcss": "^4.3.5"
+    "server-only": "^0.0.1",
+    "tailwindcss": "^4.3.5",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
     "@types/node": "^24.19.4",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",

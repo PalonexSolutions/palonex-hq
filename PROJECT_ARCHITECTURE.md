@@ -10,7 +10,7 @@ PaLoNex HQ is an independently deployable Next.js App Router application. Its pu
 | public | Optimized brand artwork |
 | tests | Desktop and mobile browser scenarios |
 
-Keep interactive engineering tools in isolated client components. Add enquiry validation and storage behind a server-only boundary. Use Supabase PostgreSQL for persisted enquiries once configured. Future administration will require Supabase Auth and authorization checks at the server and database boundaries. InternHub, Connect and the AI SuperApp can integrate through explicit interfaces as those products mature.
+Keep interactive engineering tools in isolated client components. The shared backend runs in Next.js Node route handlers. Keep database access and enquiry operations inside server-only modules. InternHub, Connect and the AI SuperApp can integrate through explicit interfaces as those products mature.
 
 ## Engineering Tools
 
@@ -29,3 +29,15 @@ Inputs, files and results live in browser memory while a workspace is open. The 
 - CSV header detection is heuristic. Override it for ambiguous data. CSV-to-JSON preserves cells as strings. JSON-to-CSV follows native JSON number precision and serializes nested values as JSON text. Spreadsheet applications can interpret formula-like cells, so import untrusted exports as text.
 - Full URL normalization follows browser URL semantics. Full URL decoding is for display, since a decoded space or character may need encoding before reuse.
 - File hashing reads up to 32 MiB into memory and requires Web Crypto in a secure context. Clipboard operations depend on browser permissions. UUID batches contain up to 100 identifiers.
+
+## Shared backend
+
+Use PostgreSQL with the typed `pg` query API, Zod validation and checked-in SQL migrations. A full ORM would add another schema representation for the current workload. SQL keeps transactions, locking, keyset pagination and outbox leases visible. Query result types are declared at the server boundary and integration-tested against PostgreSQL.
+
+The `palonex_private` schema stores enquiries and consent, hashed rate-limit counters and notification jobs. Creation and enqueue happen atomically. Duplicate submissions are serialized by an advisory transaction lock and verified against an input fingerprint. Status updates use compare-and-set semantics and a transition table. The read service remains server-only pending authentication and explicit authorization.
+
+Route handlers own HTTP concerns and use centralized request parsing and safe errors. The database pool is reused per warm process. Email delivery happens in a separately scheduled handler using a provider interface and durable leases. No business records are returned to public clients.
+
+Future identity, organizations, product data and file storage should use their own modules and migrations. Establish authorization before allowing administrative requests. The current notification boundary can be reused through explicit job and provider interfaces when another product needs it.
+
+See [backend setup](BACKEND_SETUP.md) for configuration, scheduling, retention and operational trade-offs.

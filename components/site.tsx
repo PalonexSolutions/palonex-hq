@@ -46,6 +46,7 @@ export function SiteFooter() {
           <p>Palonex Solutions Private Limited</p>
         </div>
         <nav aria-label="Footer navigation">
+          <Link href="/privacy">Privacy</Link>
           {navigation.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
         </nav>
       </div>

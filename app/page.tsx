@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, Blocks, BrainCircuit, FlaskConical, GraduationCap, Network, Terminal } from "lucide-react";
+import { EnquiryForm } from "@/features/enquiries/form";
 import { ProductCard } from "@/components/products";
 import { products } from "@/features/ecosystem";
 
@@ -73,7 +74,7 @@ export default function Home() {
       <section className="section closing" id="contact">
         <div className="shell closing-inner">
           <div><p className="eyebrow">VISION AND MISSION</p><h2>Make technology more useful and accessible.</h2><p className="lede">Our mission is to create practical technology products and learning opportunities for students, developers, innovators and professionals.</p><Link className="text-link" href="/about">About the company <ArrowRight size={16} aria-hidden /></Link></div>
-          <div className="card"><h3>Business enquiries</h3><p>The enquiry form is planned for a future release.</p></div>
+          <EnquiryForm />
         </div>
       </section>
     </>
