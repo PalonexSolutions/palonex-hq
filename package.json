@@ -13,7 +13,9 @@
     "db:migrate": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/migrate.ts",
     "db:prune": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/prune.ts",
     "test:integration": "node --conditions=react-server --test tests/integration/*.test.ts",
-    "admin:staff": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/admin.ts"
+    "admin:staff": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/admin.ts",
+    "db:status": "npm run db:migrate -- status",
+    "deploy:check": "node --conditions=react-server db/ops/check-config.ts"
   },
   "engines": {
     "node": "24.x"

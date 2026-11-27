@@ -12,24 +12,7 @@ Use Node 24, npm, and Docker Compose. The Compose database uses trust authentica
 
 ## Production setup
 
-- Provision PostgreSQL with enforced TLS and backups. Supabase PostgreSQL is compatible through standard PostgreSQL connections. Keep `palonex_private` outside PostgREST or other exposed schema lists.
-- Run `npm run db:migrate` as the schema owner via a direct or session-mode connection before starting the release. Run migrations once per release. They use a transaction, advisory lock and checksums. Applied files are immutable.
-- Set `DATABASE_URL` on the server to a TLS-verified connection using a transaction pooler when available. Use a runtime role separate from the migration owner. Set a database statement timeout on that role and keep `DATABASE_POOL_MAX` small. The default is three connections per warm instance. Provision within the provider's total connection budget.
-- Set the canonical HTTPS `APP_ORIGIN` and an independent random `ENQUIRY_SIGNING_SECRET` of at least 32 characters. Configure preview origins separately. On Vercel the application uses the platform's `x-vercel-forwarded-for` header. Elsewhere, optionally set `ENQUIRY_TRUSTED_IP_HEADER` only if the proxy overwrites it with a single verified client IP. Without a trusted IP the application uses a shared quota.
-- Set `CRON_SECRET` to another independently generated secret, `RESEND_API_KEY`, `ENQUIRY_EMAIL_FROM` to a sender on a verified domain, and `ENQUIRY_EMAIL_TO` to the monitored company inbox. Schedule an HTTPS GET to `/api/internal/notifications` with `Authorization: Bearer <CRON_SECRET>` at least every five minutes. Use a scheduler and hosting plan that support that cadence.
-- Schedule `npm run db:prune` daily as a restricted maintenance role. Enquiries default to 365 days and rate-limit windows to two days. Review the public policy and backup retention when changing the enquiry retention period. Confirm the policy with the company before going live.
-- Check database health, send a real enquiry with approved test data, confirm receipt of both emails, and verify access restrictions before opening public traffic.
-
-Example grants for a precreated login role called `palonex_runtime`. Keep secrets in the hosting provider’s secret settings.
-
-```sql
-GRANT USAGE ON SCHEMA palonex_private TO palonex_runtime;
-GRANT SELECT, INSERT ON palonex_private.enquiries TO palonex_runtime;
-GRANT UPDATE (status, updated_at, status_changed_at) ON palonex_private.enquiries TO palonex_runtime;
-GRANT SELECT, INSERT, UPDATE ON palonex_private.enquiry_rate_limits TO palonex_runtime;
-GRANT SELECT, INSERT, UPDATE ON palonex_private.enquiry_notifications TO palonex_runtime;
-ALTER ROLE palonex_runtime SET statement_timeout = '5s';
-```
+Follow the [production deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) for Neon provisioning, Vercel environment variables, migration and activation. Use the pooled runtime URL and direct operator URL with verified TLS. The consolidated runtime and maintenance privileges are in `db/ops/grants.sql`.
 
 ## API and operations
 

@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-Milestone 6 adds the central public identity directory and HQ authentication.
+Milestone 7 prepares the first Vercel and Neon deployment for owner-operated preview and release.
 
 ## Completed
 
@@ -19,6 +19,7 @@ Milestone 6 adds the central public identity directory and HQ authentication.
 - Built PostgreSQL migrations, private schema, enquiry form, validation, rate limits, consent, server-only enquiry access and a durable email outbox.
 - Built Better Auth staff sign-in, PostgreSQL-backed sessions and login limits, a dashboard, enquiry search and detail views, audited status changes and notes, and read-only notification monitoring.
 - Added public registration, login, verification, password recovery, profile management and audited staff controls for public accounts.
+- Added pooled and direct connection validation, explicit migration verification, scoped database grants, paused cron workers, release CI and the production runbooks.
 
 ## Partially complete
 
@@ -34,7 +35,7 @@ Milestone 6 adds the central public identity directory and HQ authentication.
 ## Known issues
 
 - Production database and email settings still need provisioning and smoke tests. Staff authentication remains password-based and uses the existing maintenance process for credential recovery. Public roles are ready for future product grants. Cross-origin SSO remains future work.
-- Final accessibility, performance and production checks belong to the release milestone.
+- Live Neon, Vercel Cron, production HTTPS, backups and Resend have not been verified.
 
 ## Environment and decisions
 
@@ -42,11 +43,11 @@ See [backend setup](BACKEND_SETUP.md) for database, email, scheduler and retenti
 
 ## Next recommended task
 
-Configure the production identity email worker and complete verification, recovery and staff smoke tests with approved accounts.
+Use the [production deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) to provision an isolated preview, verify the hosted stack and approve release before routing public traffic.
 
 ## Verification
 
-- Tests use an isolated PostgreSQL 17 database and mock or captured email delivery. No real emails are sent.
-- Passed 15 unit tests, 9 PostgreSQL integration tests and 60 Playwright checks. The full browser suite used the documented least-privilege runtime role and covered existing staff, enquiries, products and tools.
-- Verified local migration replay, retention maintenance, a production build, ESLint and TypeScript. Inspected desktop and mobile registration in light and dark themes.
-- Live Resend delivery and production deployment remain unverified.
+- Production launch requires owner access to Neon, Vercel, DNS and Resend. See the [security checklist](PRODUCTION_SECURITY_CHECKLIST.md), [environment matrix](PRODUCTION_ENVIRONMENT_MATRIX.md) and [operations runbook](PRODUCTION_OPERATIONS_RUNBOOK.md).
+- Passed clean npm installation, ESLint, TypeScript, 20 unit tests, 9 PostgreSQL integration tests, and 64 desktop/mobile Playwright checks through transaction-mode PgBouncer as the restricted runtime role.
+- The production build passed without runtime secrets. A second build with synthetic secret canaries produced no matches in client assets. The production dependency audit reported zero vulnerabilities.
+- Verified fresh migrations, clean status and replay, lock contention and checksum rejection, direct-URL precedence, maintenance grants and runtime denial of schema changes, enquiry deletion and audit updates.

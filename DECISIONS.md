@@ -8,3 +8,6 @@
 - Use database-backed login throttling, explicit origin validation, transactional enquiry audit records and read-only notification monitoring.
 - Use stable public UUIDs across future products. Queue identity emails separately from enquiries and consume time-limited grants server-side.
 - Keep `main` stable. Use focused branches for substantial changes and review staged files before pushing milestones.
+
+- Pin hosted runtime URLs to Neon pooled endpoints and keep direct schema-owner and maintenance credentials off Vercel. Apply checksummed migrations explicitly and use scoped database roles.
+- Schedule email workers on supported five-minute Vercel Cron intervals with bearer authentication and explicit activation. Run retention from a separate direct-connection maintenance job.

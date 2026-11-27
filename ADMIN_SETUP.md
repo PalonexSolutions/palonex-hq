@@ -37,20 +37,7 @@ Use a unique password of 14 to 128 characters. Visit `http://localhost:3000/admi
 
 ## Production
 
-1. Follow [Backend setup](BACKEND_SETUP.md) for verified TLS database access and `APP_ORIGIN`. Use an HTTPS origin and configure `BETTER_AUTH_SECRET` independently in the hosting secret store. Changing this secret invalidates existing browser sessions.
-2. Run `npm run db:migrate` from the migration owner connection. Migration 002 adds the private identity, session, staff authorization, throttle, note and audit tables. Keep `palonex_private` outside any exposed database schema list.
-3. Extend the existing runtime grants as shown below. Run provisioning and access revocation as a separate maintenance role or the schema owner. The web runtime does not provision staff.
-4. Verify sign-in, sign-out, read access and audited status changes on the HTTPS deployment before granting operational access. Configure the existing email worker separately.
-
-```sql
-GRANT SELECT ON palonex_private.admin_user, palonex_private.admin_account, palonex_private.admin_staff TO palonex_runtime;
-GRANT SELECT, INSERT, DELETE ON palonex_private.admin_session TO palonex_runtime;
-GRANT SELECT, INSERT, UPDATE ON palonex_private.admin_login_limits TO palonex_runtime;
-GRANT SELECT, INSERT ON palonex_private.enquiry_notes, palonex_private.enquiry_audit TO palonex_runtime;
-GRANT USAGE ON SEQUENCE palonex_private.enquiry_audit_id_seq TO palonex_runtime;
-```
-
-The daily `npm run db:prune` job also removes expired sessions and login-rate windows older than two days. Grant the maintenance role the necessary permissions on both tables. Monitor unexpected login throttling and failed queue deliveries. An authenticated administrator can review all enquiries. Scoped roles, MFA and self-service credential recovery remain future work.
+Use the [production deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md). Run migrations and staff provisioning from a trusted workstation with the direct Neon operator URL. Keep the runtime role separate and apply `db/ops/grants.sql` after migration. The maintenance role can prune expired sessions and login-rate windows. A verified staff session can review all enquiries. Scoped staff roles, MFA and self-service staff recovery remain future work.
 
 ## Tests
 

@@ -1,18 +1,18 @@
 import "server-only";
 import { createHmac, randomUUID } from "node:crypto";
-import { isIP } from "node:net";
 import { betterAuth } from "better-auth";
 import { PostgresDialect } from "kysely";
 import { hasVerifiedAccess, type PublicRole } from "../../features/identity/schema.ts";
 import { getDatabase, transaction } from "./database.ts";
 import { identityConfig, identityKey } from "./identity-config.ts";
 import { enqueueIdentityEmail } from "./identity-mail.ts";
+import { trustedClientIp } from "./deployment.ts";
 import { HttpError } from "./http.ts";
 
 function buildIdentityAuth() {
   const { secret, origin, secure } = identityConfig();
   return betterAuth({
-    appName: "PaLoNex Accounts", baseURL: origin, secret, basePath: "/api/identity/engine",
+    appName: "PaLoNex Accounts", baseURL: origin, trustedOrigins: [origin], secret, basePath: "/api/identity/engine",
     database: { dialect: new PostgresDialect({ pool: getDatabase() }), type: "postgres", schemaName: "palonex_private", transaction: true },
     user: { modelName: "identity_user", additionalFields: {
       consentVersion: { type: "string", required: true },
@@ -74,10 +74,8 @@ export async function requireIdentity(headers: Headers, role: PublicRole = "regi
 const limits = { register: 3, login: 10, resend: 3, forgot: 3, verify: 8, reset: 8, password: 6, profile: 20 } as const;
 
 export async function limitIdentity(request: Request, operation: keyof typeof limits, subject: string) {
-  const header = process.env.ENQUIRY_TRUSTED_IP_HEADER || (process.env.VERCEL === "1" ? "x-vercel-forwarded-for" : "");
-  const value = header ? request.headers.get(header)?.trim() || "" : "";
-  const trusted = isIP(value);
-  const keys = [[`subject:${subject}`, limits[operation]], [trusted ? `network:${value}` : "shared", trusted ? 30 : 90], ["global", 240]] as const;
+  const value = trustedClientIp(request);
+  const keys = [[`subject:${subject}`, limits[operation]], [value ? `network:${value}` : "shared", value ? 30 : 90], ["global", 240]] as const;
   const secret = identityKey("rate");
   await transaction(async client => {
     for (const [key, maximum] of keys) {

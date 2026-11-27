@@ -15,6 +15,10 @@ export function json(body: object, status = 200, headers?: HeadersInit) {
 
 export function handleError(event: string, error: unknown) {
   if (error instanceof HttpError) {
+    if (error.status === 429 || (error.status === 401 && (event === "admin.login_failed" || event === "identity.request_failed"))
+      || error.status === 503) {
+      console.warn(JSON.stringify({ event, status: error.status }));
+    }
     return json({ error: error.message }, error.status, error.retryAfter ? { "Retry-After": String(error.retryAfter) } : undefined);
   }
   console.error(JSON.stringify({ event, outcome: "unavailable" }));

@@ -8,21 +8,9 @@
 
 The web app acknowledges queuing. Email delivery requires the configured worker and provider. Rotating `PUBLIC_AUTH_SECRET` invalidates public cookies and unused links. Ask users to request new links after rotating it. The separate staff secret and sessions are unaffected. The existing daily prune job removes expired identity sessions, link records, verification values and rate windows. Grant the maintenance role the necessary cleanup permissions.
 
-## Runtime database grants
+## Production
 
-Run these in addition to the [backend grants](BACKEND_SETUP.md) and [staff grants](ADMIN_SETUP.md). The runtime role can read product role assignments. Only maintenance or a future protected provisioning flow can grant them.
-
-```sql
-GRANT SELECT, INSERT ON palonex_private.identity_user TO palonex_runtime;
-GRANT UPDATE (name, "updatedAt", "emailVerified", status) ON palonex_private.identity_user TO palonex_runtime;
-GRANT SELECT, INSERT ON palonex_private.identity_account TO palonex_runtime;
-GRANT UPDATE (password, "updatedAt") ON palonex_private.identity_account TO palonex_runtime;
-GRANT SELECT, INSERT, DELETE ON palonex_private.identity_session, palonex_private.identity_verification TO palonex_runtime;
-GRANT SELECT ON palonex_private.identity_role TO palonex_runtime;
-GRANT SELECT, INSERT, UPDATE ON palonex_private.identity_rate, palonex_private.identity_mail TO palonex_runtime;
-GRANT SELECT, INSERT ON palonex_private.identity_audit TO palonex_runtime;
-GRANT USAGE ON SEQUENCE palonex_private.identity_audit_id_seq TO palonex_runtime;
-```
+Use the [production deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) and [environment matrix](PRODUCTION_ENVIRONMENT_MATRIX.md) for Neon, Vercel, grants and mail activation. A single reviewed `db/ops/grants.sql` file applies runtime and maintenance access. The runtime can read product role assignments. Only an authorized maintenance or future provisioning workflow may grant them. Local mail delivery also requires `MAIL_WORKERS_ENABLED=true`.
 
 ## Test without sending email
 

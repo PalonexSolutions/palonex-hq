@@ -1,7 +1,8 @@
-import { getDatabase, transaction } from "../lib/server/database.ts";
+import { operatorDatabase, transaction } from "../lib/server/database.ts";
 
 const days = Number(process.env.ENQUIRY_RETENTION_DAYS || 365);
 if (!Number.isInteger(days) || days < 30 || days > 3650) throw new Error("Retention must be between 30 and 3650 days.");
+const pool = operatorDatabase();
 try {
   const summary = await transaction(async client => {
     const enquiries = await client.query("DELETE FROM palonex_private.enquiries WHERE created_at < now() - make_interval(days => $1)", [days]);
@@ -14,6 +15,6 @@ try {
     const identityMail = await client.query("DELETE FROM palonex_private.identity_mail WHERE expires_at <= now()");
     return { identityRates: identityRates.rowCount, identitySessions: identitySessions.rowCount,
       identityVerification: identityVerification.rowCount, identityMail: identityMail.rowCount, enquiries: enquiries.rowCount, rateWindows: rateWindows.rowCount, adminLimits: adminLimits.rowCount, expiredSessions: expiredSessions.rowCount };
-  });
+  }, pool, 60_000);
   console.log(JSON.stringify({ event: "database.retention_pruned", ...summary }));
-} finally { await getDatabase().end(); }
+} finally { await pool.end(); }
