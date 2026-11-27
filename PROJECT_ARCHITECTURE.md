@@ -38,7 +38,7 @@ The `palonex_private` schema stores enquiries and consent, hashed rate-limit cou
 
 Route handlers own HTTP concerns and use centralized request parsing and safe errors. The database pool is reused per warm process. Email delivery happens in a separately scheduled handler using a provider interface and durable leases. No business records are returned to public clients.
 
-Future identity, organizations, product data and file storage should use their own modules and migrations. Apply explicit authorization to new administrative capabilities. The current notification boundary can be reused through explicit job and provider interfaces when another product needs it.
+Organizations, product data and file storage should use their own modules and migrations. Apply explicit authorization to new administrative capabilities. The current notification boundary can be reused through explicit job and provider interfaces when another product needs it.
 
 See [backend setup](BACKEND_SETUP.md) for configuration, scheduling, retention and operational trade-offs.
 
@@ -48,3 +48,8 @@ See [backend setup](BACKEND_SETUP.md) for configuration, scheduling, retention a
 The admin console uses Better Auth credential verification, signed session cookies and PostgreSQL session records in `palonex_private`. Separate staff grants are checked on every protected page and API. The auth library is called server-side and the login route forwards only the session cookie and a generic success response. Staff accounts are provisioned through a maintenance CLI.
 
 The dashboard reads real enquiry and outbox aggregates. Private search uses bounded POST bodies and keyset pagination. Enquiry changes apply the existing transition policy and append audit records in the same transaction. The worker remains separate from the read-only outbox view. See [admin setup](ADMIN_SETUP.md) for environment variables and production privileges.
+
+
+## Public identity
+
+One public identity directory issues stable UUIDs for future application records. HQ uses the existing Better Auth engine with a distinct public realm so existing staff credentials and sessions remain isolated. Public login requires verified email and active status. Email verification and password recovery use encrypted, single-use links queued in PostgreSQL and delivered through the shared Resend provider. See [identity architecture](IDENTITY_ARCHITECTURE.md) and [user auth setup](USER_AUTH_SETUP.md).

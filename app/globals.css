@@ -200,3 +200,17 @@ h3 { font-size: 1.3rem; }
 .enquiry-form button { justify-self: start; }
 .enquiry-form button:disabled { opacity: .65; }
 .enquiry-form .enquiry-error { color: light-dark(#842629, #ffb3b2); }
+
+.header-controls .identity-nav { color: var(--accent); align-items: center; gap: 8px 12px; }
+.identity-nav button { cursor: pointer; }
+.identity-nav button:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+@media (max-width: 930px) {
+  .header-inner { flex-wrap: wrap; }
+  .header-inner > nav { order: 1; flex-basis: 100%; }
+  .header-controls .identity-nav { flex-basis: auto; }
+}
+@media (max-width: 490px) {
+  .header-controls .header-action { display: none; }
+}
+.mobile-contact { display: none; }
+@media (max-width: 490px) { .mobile-contact { display: inline; } }

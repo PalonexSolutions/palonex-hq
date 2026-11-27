@@ -8,7 +8,12 @@ try {
     const rateWindows = await client.query("DELETE FROM palonex_private.enquiry_rate_limits WHERE window_start < now() - interval '2 days'");
     const adminLimits = await client.query("DELETE FROM palonex_private.admin_login_limits WHERE window_start < now() - interval '2 days'");
     const expiredSessions = await client.query('DELETE FROM palonex_private.admin_session WHERE "expiresAt" <= now()');
-    return { enquiries: enquiries.rowCount, rateWindows: rateWindows.rowCount, adminLimits: adminLimits.rowCount, expiredSessions: expiredSessions.rowCount };
+    const identityRates = await client.query("DELETE FROM palonex_private.identity_rate WHERE window_start < now() - interval '2 days'");
+    const identitySessions = await client.query('DELETE FROM palonex_private.identity_session WHERE "expiresAt" <= now()');
+    const identityVerification = await client.query('DELETE FROM palonex_private.identity_verification WHERE "expiresAt" <= now()');
+    const identityMail = await client.query("DELETE FROM palonex_private.identity_mail WHERE expires_at <= now()");
+    return { identityRates: identityRates.rowCount, identitySessions: identitySessions.rowCount,
+      identityVerification: identityVerification.rowCount, identityMail: identityMail.rowCount, enquiries: enquiries.rowCount, rateWindows: rateWindows.rowCount, adminLimits: adminLimits.rowCount, expiredSessions: expiredSessions.rowCount };
   });
   console.log(JSON.stringify({ event: "database.retention_pruned", ...summary }));
 } finally { await getDatabase().end(); }

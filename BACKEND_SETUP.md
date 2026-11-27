@@ -45,3 +45,5 @@ The token enforces a 2.5-second minimum age and expires after two hours. Identic
 Outbox jobs use two-minute leases, row locking, exponential backoff and stable Resend idempotency keys. The worker records accepted sends and stops retrying after six attempts or 20 hours after the first attempt. Monitor failed jobs and queue age. Investigate before manually replaying any delivery outside the provider idempotency window. Enabling the worker also makes queued historical jobs eligible, so review the backlog before activation.
 
 The company notification contains a reference and category. The acknowledgement contains the submitter’s name and reference. The enquiry message stays in PostgreSQL. Authorized staff can review enquiries and monitor the outbox in the [admin console](ADMIN_SETUP.md). Structured application logs carry event names, outcomes and opaque identifiers.
+
+For public sign-in and the separate verification and recovery worker, follow [user auth setup](USER_AUTH_SETUP.md).

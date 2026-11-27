@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-Milestone 5 adds the internal administration console and enquiry management.
+Milestone 6 adds the central public identity directory and HQ authentication.
 
 ## Completed
 
@@ -18,6 +18,7 @@ Milestone 5 adds the internal administration console and enquiry management.
 
 - Built PostgreSQL migrations, private schema, enquiry form, validation, rate limits, consent, server-only enquiry access and a durable email outbox.
 - Built Better Auth staff sign-in, PostgreSQL-backed sessions and login limits, a dashboard, enquiry search and detail views, audited status changes and notes, and read-only notification monitoring.
+- Added public registration, login, verification, password recovery, profile management and audited staff controls for public accounts.
 
 ## Partially complete
 
@@ -27,25 +28,25 @@ Milestone 5 adds the internal administration console and enquiry management.
 ## Pending
 
 - Insights, expanded PaLoLabs content, and dedicated InternHub and Connect pages.
-- Production staff provisioning, formal launch checks and deployment.
+- Production identity email delivery, terms and privacy review, staff provisioning and deployment checks.
 - Founder input on leadership profiles, approved public contact details and enquiry handling.
 
 ## Known issues
 
-- Production database and email settings still need provisioning and smoke tests. Administrator access is password-based. MFA and self-service recovery remain future work.
+- Production database and email settings still need provisioning and smoke tests. Staff authentication remains password-based and uses the existing maintenance process for credential recovery. Public roles are ready for future product grants. Cross-origin SSO remains future work.
 - Final accessibility, performance and production checks belong to the release milestone.
 
 ## Environment and decisions
 
-See [backend setup](BACKEND_SETUP.md) for database, email, scheduler and retention settings. See [admin setup](ADMIN_SETUP.md) for session configuration, staff provisioning and grants.
+See [backend setup](BACKEND_SETUP.md) for database, email, scheduler and retention settings. See [admin setup](ADMIN_SETUP.md) for staff provisioning and grants, and [user auth setup](USER_AUTH_SETUP.md) for public sessions and identity mail.
 
 ## Next recommended task
 
-Configure and validate the production backend, provision authorized staff and complete HTTPS smoke tests.
+Configure the production identity email worker and complete verification, recovery and staff smoke tests with approved accounts.
 
 ## Verification
 
-- Local tests use a dedicated PostgreSQL 17 database and synthetic staff and enquiry records. Automated tests send no real emails.
-- Passed ESLint, TypeScript, the production build, 13 unit tests, 7 PostgreSQL integration tests and 58 desktop/mobile Playwright checks.
-- Ran the complete browser suite with the documented least-privilege database role, verified secure cookie attributes for HTTPS in integration tests, and inspected desktop and mobile screenshots in both themes.
-- Verified CLI provisioning and revocation, migration replay and retention maintenance. The production dependency audit reported zero vulnerabilities.
+- Tests use an isolated PostgreSQL 17 database and mock or captured email delivery. No real emails are sent.
+- Passed 15 unit tests, 9 PostgreSQL integration tests and 60 Playwright checks. The full browser suite used the documented least-privilege runtime role and covered existing staff, enquiries, products and tools.
+- Verified local migration replay, retention maintenance, a production build, ESLint and TypeScript. Inspected desktop and mobile registration in light and dark themes.
+- Live Resend delivery and production deployment remain unverified.

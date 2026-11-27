@@ -12,6 +12,8 @@ export default {
     return [
       { source: "/admin/:path*", headers: privateHeaders },
       { source: "/api/admin/:path*", headers: privateHeaders },
+      { source: "/api/identity/:path*", headers: privateHeaders },
+      { source: "/:identityPage(account|login|register|forgot-password|reset-password|verify-email)", headers: privateHeaders },
     ];
   },
 } satisfies NextConfig;

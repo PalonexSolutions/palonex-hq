@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AccountNavigation } from "@/features/identity/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
@@ -24,8 +25,10 @@ export function SiteHeader() {
         <Brand />
         <nav aria-label="Main navigation">
           {navigation.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
+          <Link className="mobile-contact" href="/#contact">Get in touch</Link>
         </nav>
         <div className="header-controls">
+          <AccountNavigation />
           <ThemeToggle />
           <Link className="button header-action" href="/#contact">Get in touch <ArrowRight size={15} aria-hidden /></Link>
         </div>
@@ -47,6 +50,7 @@ export function SiteFooter() {
         </div>
         <nav aria-label="Footer navigation">
           <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
           {navigation.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
         </nav>
       </div>

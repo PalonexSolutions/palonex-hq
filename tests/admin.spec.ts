@@ -27,6 +27,7 @@ test("staff can sign in, review real enquiries, audit changes, monitor queue and
   const actor = randomUUID();
   const id = randomUUID();
   const staffEmail = `${actor}@example.test`;
+  const publicId = randomUUID();
   const enquiryEmail = `${id}@example.test`;
   const password = randomUUID();
   const subject = `Admin browser fixture ${id}`;
@@ -44,6 +45,11 @@ test("staff can sign in, review real enquiries, audit changes, monitor queue and
       VALUES ($1,$2,'fixture','Test Visitor',$3,'Test Organization','product',$4,'Private browser text.','fixture')`,
     [id, randomUUID(), enquiryEmail, subject]);
     await db.query("INSERT INTO palonex_private.enquiry_notifications(enquiry_id,kind) VALUES ($1,'company')", [id]);
+
+    await db.query(`
+      INSERT INTO palonex_private.identity_user
+        (id,name,email,"emailVerified","createdAt","updatedAt","consentVersion","consentedAt")
+      VALUES ($1,'Public Fixture',$2,true,now(),now(),'test',now())`, [publicId, staffEmail]);
 
     await page.emulateMedia({ colorScheme: theme });
     await page.goto("/admin/login");
@@ -99,6 +105,20 @@ test("staff can sign in, review real enquiries, audit changes, monitor queue and
     expect((await db.query("SELECT attempts,sent_at FROM palonex_private.enquiry_notifications WHERE enquiry_id=$1", [id])).rows[0]).toEqual({ attempts: 0, sent_at: null });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => innerWidth));
 
+    await nav.getByRole("link", { name: "Public accounts" }).click();
+    await page.getByLabel("Search public accounts").fill(publicId);
+    await page.getByRole("button", { name: "Search accounts" }).click();
+    const results = page.getByRole("region", { name: "Public account results" });
+    await expect(results.getByText(`Account reference ${publicId}`)).toBeVisible();
+    const publicRow = results.getByRole("listitem").filter({ hasText: publicId });
+    await publicRow.getByRole("button", { name: "Suspend", exact: true }).click();
+    await publicRow.getByRole("button", { name: "Confirm suspension" }).click();
+    await expect(page.getByText("Account suspended and sessions revoked.")).toBeVisible();
+    await publicRow.getByRole("button", { name: "Reactivate", exact: true }).click();
+    await publicRow.getByRole("button", { name: "Confirm reactivation" }).click();
+    await expect(page.getByText("Account reactivated.")).toBeVisible();
+    expect((await db.query("SELECT count(*)::int AS count FROM palonex_private.identity_audit WHERE user_id=$1 AND actor_id=$2", [publicId, actor])).rows[0].count).toBe(2);
+
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL("/admin/login");
     expect((await request.post("/api/admin/enquiries", {
@@ -106,6 +126,7 @@ test("staff can sign in, review real enquiries, audit changes, monitor queue and
     })).status()).toBe(401);
   } finally {
     await db.query("DELETE FROM palonex_private.enquiries WHERE id=$1", [id]);
+    await db.query("DELETE FROM palonex_private.identity_user WHERE id=$1", [publicId]);
     await db.query("DELETE FROM palonex_private.admin_user WHERE id=$1", [actor]);
     await db.end();
   }

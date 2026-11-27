@@ -11,6 +11,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         <Link href="/admin" prefetch={false}>Overview</Link>
         <Link href="/admin/enquiries" prefetch={false}>Enquiries</Link>
         <Link href="/admin/notifications" prefetch={false}>Notifications</Link>
+        <Link href="/admin/accounts" prefetch={false}>Public accounts</Link>
       </nav>
       <LogoutButton />
     </header>
