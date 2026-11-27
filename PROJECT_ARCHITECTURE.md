@@ -34,10 +34,17 @@ Inputs, files and results live in browser memory while a workspace is open. The 
 
 Use PostgreSQL with the typed `pg` query API, Zod validation and checked-in SQL migrations. A full ORM would add another schema representation for the current workload. SQL keeps transactions, locking, keyset pagination and outbox leases visible. Query result types are declared at the server boundary and integration-tested against PostgreSQL.
 
-The `palonex_private` schema stores enquiries and consent, hashed rate-limit counters and notification jobs. Creation and enqueue happen atomically. Duplicate submissions are serialized by an advisory transaction lock and verified against an input fingerprint. Status updates use compare-and-set semantics and a transition table. The read service remains server-only pending authentication and explicit authorization.
+The `palonex_private` schema stores enquiries and consent, hashed rate-limit counters and notification jobs. Creation and enqueue happen atomically. Duplicate submissions are serialized by an advisory transaction lock and verified against an input fingerprint. Status updates use compare-and-set semantics and a transition table. The read service remains server-only and the admin routes require a verified staff session.
 
 Route handlers own HTTP concerns and use centralized request parsing and safe errors. The database pool is reused per warm process. Email delivery happens in a separately scheduled handler using a provider interface and durable leases. No business records are returned to public clients.
 
-Future identity, organizations, product data and file storage should use their own modules and migrations. Establish authorization before allowing administrative requests. The current notification boundary can be reused through explicit job and provider interfaces when another product needs it.
+Future identity, organizations, product data and file storage should use their own modules and migrations. Apply explicit authorization to new administrative capabilities. The current notification boundary can be reused through explicit job and provider interfaces when another product needs it.
 
 See [backend setup](BACKEND_SETUP.md) for configuration, scheduling, retention and operational trade-offs.
+
+
+## Internal administration
+
+The admin console uses Better Auth credential verification, signed session cookies and PostgreSQL session records in `palonex_private`. Separate staff grants are checked on every protected page and API. The auth library is called server-side and the login route forwards only the session cookie and a generic success response. Staff accounts are provisioned through a maintenance CLI.
+
+The dashboard reads real enquiry and outbox aggregates. Private search uses bounded POST bodies and keyset pagination. Enquiry changes apply the existing transition policy and append audit records in the same transaction. The worker remains separate from the read-only outbox view. See [admin setup](ADMIN_SETUP.md) for environment variables and production privileges.

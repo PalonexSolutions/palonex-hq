@@ -1,4 +1,5 @@
 import "server-only";
+import type { PoolClient } from "pg";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { categories, privacyVersion } from "../../features/enquiries/constants.ts";
@@ -58,19 +59,22 @@ const listOptions = z.object({
   category: z.enum(Object.keys(categories) as [keyof typeof categories, ...(keyof typeof categories)[]]).optional(),
   search: z.string().trim().max(150).optional(),
   limit: z.number().int().min(1).max(100).default(25),
+  order: z.enum(["newest", "oldest"]).default("newest"),
   cursor: z.object({ time: z.iso.datetime(), id: z.uuid() }).optional(),
 });
 
 export async function listEnquiries(options: z.input<typeof listOptions> = {}) {
-  const { status, category, search, limit, cursor } = listOptions.parse(options);
+  const { status, category, search, limit, cursor, order } = listOptions.parse(options);
+  const direction = order === "oldest" ? "ASC" : "DESC";
+  const comparator = order === "oldest" ? ">" : "<";
   const { rows } = await getDatabase().query<EnquirySummary & { cursor_time: string }>(`
     SELECT id, full_name, email, organization, subject, category, status, created_at, updated_at, status_changed_at,
       to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
     FROM palonex_private.enquiries WHERE ($1::text IS NULL OR status=$1)
       AND ($2::text IS NULL OR category=$2)
-      AND ($3::text IS NULL OR strpos(lower(concat_ws(' ', full_name, email, organization, subject)), lower($3)) > 0)
-      AND ($4::timestamptz IS NULL OR (created_at, id) < ($4::timestamptz, $5::uuid))
-    ORDER BY created_at DESC, id DESC LIMIT $6`,
+      AND ($3::text IS NULL OR strpos(lower(concat_ws(' ', full_name, email, organization, subject, id::text)), lower($3)) > 0)
+      AND ($4::timestamptz IS NULL OR (created_at, id) ${comparator} ($4::timestamptz, $5::uuid))
+    ORDER BY created_at ${direction}, id ${direction} LIMIT $6`,
   [status ?? null, category ?? null, search || null, cursor?.time ?? null, cursor?.id ?? null, limit + 1]);
   const page = rows.slice(0, limit).map(({ cursor_time, ...item }) => ({ item, cursor: { time: cursor_time, id: item.id } }));
   const last = page.at(-1);
@@ -80,7 +84,7 @@ export async function listEnquiries(options: z.input<typeof listOptions> = {}) {
   };
 }
 
-const transitions: Record<Status, readonly Status[]> = {
+export const transitions: Record<Status, readonly Status[]> = {
   NEW: ["IN_PROGRESS", "ARCHIVED"],
   IN_PROGRESS: ["RESOLVED", "ARCHIVED"],
   RESOLVED: ["IN_PROGRESS", "ARCHIVED"],
@@ -94,9 +98,9 @@ export async function getEnquiry(id: string) {
   return rows[0] ?? null;
 }
 
-export async function transitionEnquiry(id: string, from: Status, to: Status) {
+export async function transitionEnquiry(id: string, from: Status, to: Status, client?: PoolClient) {
   if (!transitions[from]?.includes(to)) throw new HttpError(409, "Invalid status transition.");
-  const { rowCount } = await getDatabase().query(
+  const { rowCount } = await (client ?? getDatabase()).query(
     "UPDATE palonex_private.enquiries SET status=$3, updated_at=now(), status_changed_at=now() WHERE id=$1 AND status=$2",
     [z.uuid().parse(id), from, to]);
   if (!rowCount) throw new HttpError(409, "The enquiry status has changed or the record is unavailable.");

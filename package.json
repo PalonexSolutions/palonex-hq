@@ -12,13 +12,16 @@
     "test:unit": "node --conditions=react-server --test tests/unit/*.test.ts",
     "db:migrate": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/migrate.ts",
     "db:prune": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/prune.ts",
-    "test:integration": "node --conditions=react-server --test tests/integration/*.test.ts"
+    "test:integration": "node --conditions=react-server --test tests/integration/*.test.ts",
+    "admin:staff": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/admin.ts"
   },
   "engines": {
     "node": "24.x"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.5",
+    "better-auth": "^1.7.28",
+    "kysely": "^0.29.9",
     "lucide-react": "^1.82.0",
     "next": "^16.4.6",
     "pg": "^8.23.1",

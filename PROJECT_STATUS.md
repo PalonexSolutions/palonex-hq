@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-Milestone 4 establishes the shared backend and business enquiries.
+Milestone 5 adds the internal administration console and enquiry management.
 
 ## Completed
 
@@ -17,6 +17,7 @@ Milestone 4 establishes the shared backend and business enquiries.
 - Built the Engineering Tools directory and eight browser-local utilities for JSON, CSV, text diff, Base64, URLs, SHA-256, UUIDs and text processing.
 
 - Built PostgreSQL migrations, private schema, enquiry form, validation, rate limits, consent, server-only enquiry access and a durable email outbox.
+- Built Better Auth staff sign-in, PostgreSQL-backed sessions and login limits, a dashboard, enquiry search and detail views, audited status changes and notes, and read-only notification monitoring.
 
 ## Partially complete
 
@@ -26,26 +27,25 @@ Milestone 4 establishes the shared backend and business enquiries.
 ## Pending
 
 - Insights, expanded PaLoLabs content, and dedicated InternHub and Connect pages.
-- Supabase-backed administration, formal launch checks and deployment.
+- Production staff provisioning, formal launch checks and deployment.
 - Founder input on leadership profiles, approved public contact details and enquiry handling.
 
 ## Known issues
 
-- Production database and email settings still need provisioning and smoke tests. Access to enquiry records currently requires approved server-side database access.
+- Production database and email settings still need provisioning and smoke tests. Administrator access is password-based. MFA and self-service recovery remain future work.
 - Final accessibility, performance and production checks belong to the release milestone.
 
 ## Environment and decisions
 
-See [backend setup](BACKEND_SETUP.md) for database, email, scheduler and retention settings.
+See [backend setup](BACKEND_SETUP.md) for database, email, scheduler and retention settings. See [admin setup](ADMIN_SETUP.md) for session configuration, staff provisioning and grants.
 
 ## Next recommended task
 
-Configure and validate the production backend, then add authenticated administration for authorized staff.
+Configure and validate the production backend, provision authorized staff and complete HTTPS smoke tests.
 
 ## Verification
 
-- ESLint, TypeScript, production build, 12 unit tests, 4 PostgreSQL integration tests and 54 desktop/mobile Playwright checks passed.
-- A clean PostgreSQL 17 database accepted the migration and a second migration run performed no changes.
-- Verified persistent form submissions, duplicate retry handling, rate limits, pagination, controlled transitions and email retries with a mock provider.
-- A database-outage browser smoke test confirmed generic 503 responses and preservation of form data for retry.
-- The production dependency audit reported zero vulnerabilities. Production database, DNS, scheduler and real mail delivery remain unverified.
+- Local tests use a dedicated PostgreSQL 17 database and synthetic staff and enquiry records. Automated tests send no real emails.
+- Passed ESLint, TypeScript, the production build, 13 unit tests, 7 PostgreSQL integration tests and 58 desktop/mobile Playwright checks.
+- Ran the complete browser suite with the documented least-privilege database role, verified secure cookie attributes for HTTPS in integration tests, and inspected desktop and mobile screenshots in both themes.
+- Verified CLI provisioning and revocation, migration replay and retention maintenance. The production dependency audit reported zero vulnerabilities.
