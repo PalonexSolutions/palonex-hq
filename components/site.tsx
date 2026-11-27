@@ -8,7 +8,7 @@ const navigation = [
 ] as const;
 
 function Brand() {
-  return <Link href="/" className="brand"><span className="brand-icon"><Orbit size={21} aria-hidden /></span>PaLo<span>Nex</span></Link>;
+  return <Link href="/" className="brand" aria-label="PaLoNex home"><span className="brand-icon"><Orbit size={21} aria-hidden /></span>PaLo<span>Nex</span></Link>;
 }
 
 export function SiteHeader() {

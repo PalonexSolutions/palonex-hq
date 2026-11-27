@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, Blocks, BrainCircuit, FlaskConical, GraduationCap, Network, Terminal } from "lucide-react";
+import { ProductCard } from "@/components/products";
 import { products } from "@/features/ecosystem";
 
 export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: "/" } };
@@ -28,7 +29,7 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-art" aria-hidden="true">
-            <Image src="/hero.webp" alt="" fill preload sizes="(max-width: 760px) 100vw, 55vw" />
+            <Image src="/hero-gold.webp" alt="" fill preload sizes="(max-width: 760px) 100vw, 55vw" />
           </div>
         </div>
       </section>
@@ -55,11 +56,8 @@ export default function Home() {
           <Link href="/products" className="text-link">See all seven concepts <ArrowRight size={17} aria-hidden /></Link>
         </div>
         <div className="card-grid three">
-          {products.filter(({ name }) => ["FoodSnap", "SkillEdge", "TalkSign"].includes(name)).map(({ name, description, icon: Icon }) => (
-            <article key={name} className="card">
-              <div className="card-top"><Icon size={23} aria-hidden /><span className="status">Concept</span></div>
-              <h3>{name}</h3><p>{description}</p>
-            </article>
+          {products.filter(({ featured }) => featured).map((product) => (
+            <ProductCard key={product.slug} product={product} compact />
           ))}
         </div>
       </section>

@@ -2,31 +2,32 @@
 
 ## Current milestone
 
-Phase 0 foundation and initial Phase 1 public experience.
+Milestone 2 delivers the official visual identity and full concept portfolio within Phase 2.
 
 ## Completed
 
 - Next.js App Router, TypeScript, Tailwind, ESLint, npm, and desktop/mobile Playwright configuration.
 - Responsive homepage, navigation and footer, plus About, product catalog, PaLoLabs and opportunities routes.
-- Four ecosystem pillars and seven product concepts.
+- Four ecosystem pillars, a curated catalog and seven static product concept pages with dedicated metadata and sitemap entries.
+- Each product has a distinct icon and geometric illustration, audience, examples and proposed development direction.
+- The official matte-black and metallic-gold palette is centralized in CSS variables. The header and footer retain the orbit mark and wordmark, and the homepage uses updated gold artwork.
 - Baseline metadata, canonical URLs, sitemap and robots directives.
 - Environment, architecture, design, deployment and testing documentation.
 
 ## Partially complete
 
 - Company narrative and initial destination pages. Leadership and approved company copy require founder input.
-- The product catalog displays concepts. Dedicated product detail routes are planned.
 - Business enquiries and engineering tools are introduced on the homepage.
 
 ## Pending
 
-- Full product, research, learning and community content, Insights, engineering tools and persistent enquiries.
+- Insights, expanded PaLoLabs content, dedicated InternHub and Connect pages, engineering tools and persistent enquiries.
 - Supabase-backed administration, formal launch checks and deployment.
 - Founder input on leadership profiles, approved public contact details and enquiry handling.
 
 ## Known issues
 
-- The foundation has no enquiry submission path.
+- Business enquiries are informational while the submission flow is pending. All seven products are concepts and have no launch dates.
 - Final accessibility, performance and production checks belong to the release milestone.
 
 ## Environment and decisions
@@ -35,11 +36,10 @@ The public foundation requires no runtime environment variables. See [technical 
 
 ## Next recommended task
 
-Complete Phase 1 by reviewing the company copy and responsive experience, then expand the product catalog with dedicated detail pages.
+Finish Phase 2 with Insights, expanded PaLoLabs content, and dedicated InternHub and Connect introductions.
 
 ## Verification
 
-- The development server started and rendered the homepage. Its desktop and mobile layouts and hero image were inspected in Chromium.
 - ESLint, TypeScript and the Next.js production build passed.
-- Playwright passed all four desktop and mobile checks against the production build.
-- npm audit reported zero vulnerabilities. ESLint 9 remains in use because the current Next.js lint configuration has a transitive peer dependency that excludes ESLint 10.
+- All 22 Playwright checks passed across desktop and mobile Chromium. Coverage includes homepage navigation, all seven catalog links and concept pages, metadata, sitemap and unknown-product handling.
+- Desktop and mobile screenshots were reviewed for the homepage, catalog and both product hero layouts.
