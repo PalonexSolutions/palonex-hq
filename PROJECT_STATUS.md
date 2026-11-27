@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-Milestone 2 delivers the official visual identity and full concept portfolio within Phase 2.
+Brand refinement within Phase 2.
 
 ## Completed
 
@@ -10,7 +10,8 @@ Milestone 2 delivers the official visual identity and full concept portfolio wit
 - Responsive homepage, navigation and footer, plus About, product catalog, PaLoLabs and opportunities routes.
 - Four ecosystem pillars, a curated catalog and seven static product concept pages with dedicated metadata and sitemap entries.
 - Each product has a distinct icon and geometric illustration, audience, examples and proposed development direction.
-- The official matte-black and metallic-gold palette is centralized in CSS variables. The header and footer retain the orbit mark and wordmark, and the homepage uses updated gold artwork.
+- Integrated the original standalone logo into navigation and browser branding and the original name and tagline artwork into the footer.
+- Added matte-black and warm-ivory themes with shared champagne-gold tokens. The navigation toggle persists the explicit preference and the initial paint follows the saved or OS preference.
 - Baseline metadata, canonical URLs, sitemap and robots directives.
 - Environment, architecture, design, deployment and testing documentation.
 
@@ -40,6 +41,7 @@ Finish Phase 2 with Insights, expanded PaLoLabs content, and dedicated InternHub
 
 ## Verification
 
-- ESLint, TypeScript and the Next.js production build passed.
-- All 22 Playwright checks passed across desktop and mobile Chromium. Coverage includes homepage navigation, all seven catalog links and concept pages, metadata, sitemap and unknown-product handling.
-- Desktop and mobile screenshots were reviewed for the homepage, catalog and both product hero layouts.
+- ESLint, TypeScript and the production build passed.
+- All 30 desktop and mobile Chromium checks passed. Coverage includes all existing public pages in both themes, initial theme selection, persistence, keyboard operation, logo proportions and existing product navigation.
+- The official PNGs retain their source dimensions and alpha properties. Checked text contrast for the shared text and surface tokens in both themes.
+- Reviewed desktop and mobile screenshots of the homepage, catalog, a product detail page and shared footer in both themes.
