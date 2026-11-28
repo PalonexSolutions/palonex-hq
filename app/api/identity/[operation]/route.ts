@@ -50,18 +50,75 @@ export async function POST(request: Request, { params }: Props) {
       return cookies(checked(await auth.signOut({ headers, asResponse: true }), "Sign-out could not be completed."));
     }
     const payload = await readJson(request, 6500);
+    
     if (operation === "register") {
       const { name, email, password } = parse(forms.register, payload);
-      await limitIdentity(request, operation, email);
-      const response = await auth.signUpEmail({ body: { name, email, password, consentVersion, consentedAt: new Date() }, headers, asResponse: true });
-      if (!response.ok) {
-        // A concurrent sign-up may have won the unique email race.
-        if (response.status !== 422 || !(await getDatabase().query("SELECT 1 FROM palonex_private.identity_user WHERE email=$1", [email])).rowCount)
-          throw new Error("Registration failed.");
+
+      let stage = "rate_limit";
+
+      try {
+        await limitIdentity(request, operation, email);
+
+        stage = "signup";
+        const response = await auth.signUpEmail({
+          body: {
+            name,
+            email,
+            password,
+            consentVersion,
+            consentedAt: new Date(),
+          },
+          headers,
+          asResponse: true,
+        });
+
+        if (!response.ok) {
+          stage = "duplicate_check";
+
+          if (
+            response.status !== 422 ||
+            !(await getDatabase().query(
+              "SELECT 1 FROM palonex_private.identity_user WHERE email=$1",
+              [email]
+            )).rowCount
+          ) {
+            console.error(JSON.stringify({
+              event: "identity.registration_failed",
+              stage,
+              authStatus: response.status,
+            }));
+            throw new Error("Registration failed.");
+          }
+        }
+
+        stage = "verification_queue";
+
+        checked(
+          await auth.sendVerificationEmail({
+            body: { email },
+            asResponse: true,
+          }),
+          "Verification could not be queued."
+        );
+
+        return json({ ok: true }, 202);
+      } catch (error) {
+        const dbError = error as {
+          code?: string;
+          name?: string;
+        };
+
+        console.error(JSON.stringify({
+          event: "identity.registration_failed",
+          stage,
+          errorName: dbError?.name ?? "UnknownError",
+          databaseCode: dbError?.code ?? null,
+        }));
+
+        throw error;
       }
-      checked(await auth.sendVerificationEmail({ body: { email }, asResponse: true }), "Verification could not be queued.");
-      return json({ ok: true }, 202);
     }
+
     if (operation === "login") {
       const body = parse(forms.login, payload);
       await limitIdentity(request, operation, body.email);
