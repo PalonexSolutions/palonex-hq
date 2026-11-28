@@ -1,8 +1,11 @@
 # Production operations runbook
 
-## Before traffic
+## Production release and verification
 
-Record the deployed commit, Vercel environment, Neon project and branch, approved mail state, recovery timestamp and owner on duty. Keep the runbook and sealed credentials accessible to the owner. Use the [deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) and [security checklist](PRODUCTION_SECURITY_CHECKLIST.md) to record sign-off.
+1. Validate the exact release commit locally. Run lint, typecheck, unit and PostgreSQL integration tests, the production build, the built-endpoint registration regressions, and the desktop and mobile browser suite. Use disposable local PostgreSQL, synthetic accounts, and paused mail workers. [Testing guide](TESTING_GUIDE.md)
+2. Before authorizing a release, confirm the intended commit on `main`, the Vercel Production target, the canonical `APP_ORIGIN`, and the Production Neon branch pin and restricted runtime role. Confirm `MAIL_WORKERS_ENABLED=false` and that no scheduled or external trigger invokes the workers. Record the recovery timestamp, rollback deployment, owner on duty, and sign-off without copying credentials. [Security checklist](PRODUCTION_SECURITY_CHECKLIST.md)
+3. When authorized, release the validated `main` commit through Vercel's Production deployment workflow. In Vercel, confirm the deployed commit, Production target, and Ready status before marking the release verified.
+4. Verify the HTTPS registration page on the canonical apex, the `www` redirect, and a 200 with `{"status":"ok"}` from `GET /api/health/database`. Check the deployed commit's runtime logs for new health or registration errors. Keep the Production release smoke checks read-only. Use the local regression suite for registration writes, queue recovery, and verification. The Production health probe checks connectivity and read access only.
 
 ## Monitoring and email
 
@@ -27,8 +30,8 @@ During approved processing, watch for repeated health failures, terminal identit
 
 ## Manual worker procedure
 
-1. Keep `MAIL_WORKERS_ENABLED=false` in both hosted environments by default. Before a manual run, confirm the exact environment host, inspect both queues and approve the intended recipients. Preview may use only its isolated fixtures and `PREVIEW_MAIL_TO`. Skip real delivery when no approved free provider configuration is available.
-2. For an approved run, set `MAIL_WORKERS_ENABLED=true` for that environment and redeploy its configuration. Load the matching `CRON_SECRET` from secure local tooling. Invoke only the intended endpoint on the exact approved host. For example, with the approved origin in `PALONEX_WORKER_ORIGIN`:
+1. Keep `MAIL_WORKERS_ENABLED=false` in Production by default and throughout release verification. Before a separately approved manual Production run, confirm the canonical host, inspect both queues and approve the intended recipients. Skip real delivery when no approved free provider configuration is available.
+2. For an approved run, set `MAIL_WORKERS_ENABLED=true` in Production and redeploy its configuration. Load the matching `CRON_SECRET` from secure local tooling. Invoke only the intended endpoint on the exact approved host. For example, with the approved origin in `PALONEX_WORKER_ORIGIN`:
 
    ```sh
    printf 'header = "Authorization: Bearer %s"\n' "$CRON_SECRET" |
@@ -36,14 +39,14 @@ During approved processing, watch for repeated health failures, terminal identit
    ```
 
    For verification or recovery, use `/api/internal/identity-mail` within the link lifetime. One call processes at most five due jobs and does not bypass leases, backoff or expiry. Review the result before running another batch.
-3. Restore `MAIL_WORKERS_ENABLED=false`, redeploy the scoped settings and verify an authenticated request returns `{"status":"paused"}`. Anonymous and invalid bearer requests return 401 throughout. Review Vercel project settings for any previously registered jobs or external triggers. Disable stale triggers before enabling manual processing.
+3. Restore `MAIL_WORKERS_ENABLED=false`, redeploy the Production settings and verify an authenticated request returns `{"status":"paused"}`. Anonymous and invalid bearer requests return 401 throughout. Review Vercel project settings for any previously registered jobs or external triggers. Disable stale triggers before enabling manual processing.
 
 ## Retention and recovery
 
 - Enquiries and linked notes/audit/notifications default to 365 days, consistent with the current privacy policy. After verifying the target and recovery point, the restricted direct maintenance role can run `npm run db:prune -- --apply` manually to remove expired sessions and link records and old rate windows. With no `--apply`, the command opens no database connection. Track manual runs against the retention policy and defer public launch if the cadence cannot be maintained. Changing enquiry retention requires updating the approved policy and considering backup retention. Keep account/audit retention review separate from enquiry pruning.
 - In Neon, confirm the actual branch restore and point-in-time recovery window for the selected plan. Plans and retention settings vary. Record the configured window, owner access and a validated recovery point. Target **RPO ≤ 1 hour** and **RTO ≤ 4 hours**. These are planning targets and depend on the selected plan and a successful restore drill.
 - Before schema changes, record a recovery timestamp and create an approved recovery point according to Neon features. If policy calls for a logical backup, run a compatible `pg_dump --format=custom --schema=palonex_private --no-owner --no-privileges` against the direct owner connection using protected client configuration. Store the dump encrypted with tightly scoped access and an expiry date. It contains private data, password hashes and session material. Preserve separate role/grant and provider configuration documentation.
-- Practice restore in an isolated branch with mail paused and restricted access. For a logical dump, restore into an empty isolated database with `pg_restore --exit-on-error --no-owner --no-privileges`, apply scoped grants, then run `npm run db:status` and read-only counters. Keep restored customer data out of ordinary preview environments. Record time to restore and verify an approved smoke test before updating the recovery targets.
+- Practice logical restore in a disposable local PostgreSQL database with mail paused and restricted access. For a logical dump, restore into an empty isolated database with `pg_restore --exit-on-error --no-owner --no-privileges`, apply scoped grants, then run `npm run db:status` and read-only counters. Use synthetic data for routine restore drills. Handle any authorized customer backup under the recovery controls above. Record time to restore and verify an approved smoke test before updating the recovery targets.
 - **App rollback:** use Vercel's previous deployment or redeploy the last known compatible commit. Verify schema compatibility first. This does not reverse a database migration or undo writes.
 - **Database recovery:** stop new writes and pause mail, identify the affected time and branch, restore to a separate branch, then compare integrity and migration state. Decide which writes must be reconciled before changing any environment URL or branch pin. Reapply scoped credentials, and verify application compatibility and queues before cutover. Live PITR rollback and public traffic changes require owner approval.
 
@@ -61,7 +64,7 @@ Filter Vercel Runtime Logs for `identity.registration_failed` on the affected de
 | `duplicate_check` | Check runtime ability to read the identity user table. |
 | `verification_queue` | Check the user lookup and verification queue transaction. A failed queue can leave an unverified account because signup and queueing use separate transactions. |
 
-SQLSTATE `42501` identifies an insufficient privilege. Inspect the exact targeted branch and runtime role before changing grants. Use the isolated Preview deployment for a full registration smoke test. Use a read-only database health check in Production during diagnosis. Keep mail paused and inspect existing incident logs before requesting a new live registration.
+SQLSTATE `42501` identifies an insufficient privilege. Inspect the exact targeted branch and runtime role before changing grants. Reproduce registration failures against the built app and disposable local PostgreSQL. In Production, use the read-only health check and inspect existing runtime logs with mail paused. Once the queue issue is resolved, an affected user can request a new link from the sign-in page. Delivery still requires an approved manual worker run within the link lifetime.
 
 ## Incident checklist
 
@@ -70,6 +73,6 @@ SQLSTATE `42501` identifies an insufficient privilege. Inspect the exact targete
 3. If traffic is at risk, restrict access and roll back through Vercel if the previous release is schema-compatible. Keep migration state and writes intact. Escalate data recovery to the owner.
 4. For leaked credentials, rotate in only the affected environment, redeploy and revoke old credentials after confirming the new role and connection. Rotating public auth invalidates public cookies and pending recovery/verification links. Rotating staff auth invalidates staff cookies. Rotating the enquiry signing secret invalidates outstanding form tokens. Rotating the worker bearer secret requires updating the approved operator configuration. Rotate Resend and Neon passwords independently, and review jobs and connection activity.
 5. For compromised staff credentials, use the direct operator connection to `npm run admin:staff -- disable <staff-email>` and verify session revocation. Provision an approved replacement identity through the documented hidden password prompt. Review audit events and retain the old administrator ID for correlation.
-6. Verify health, read/write smoke checks, sessions, queue behavior and HTTPS before reopening access. Record the resolution with recovery metrics and approved follow-up.
+6. Verify Production health and HTTPS before reopening access. Validate registration writes, sessions, and queue behavior locally. Record the resolution with recovery metrics and approved follow-up.
 
 Provider documentation for owner verification includes [Vercel Cron](https://vercel.com/docs/cron-jobs/usage-and-pricing), [Neon branching and restore](https://neon.com/docs/introduction/branch-restore), and [Resend domain verification](https://resend.com/docs/dashboard/domains/introduction).

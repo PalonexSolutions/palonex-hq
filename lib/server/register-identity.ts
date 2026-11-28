@@ -13,7 +13,8 @@ export function registerIdentity(request: Request) {
     next("request_validation");
     const parsed = forms.register.safeParse(await readJson(request, 6500));
     if (!parsed.success) {
-      const issue = parsed.error.issues.find(item => item.path.includes("password") || item.path.length === 0);
+      const issue = parsed.error.issues.find(item =>
+        item.code !== "unrecognized_keys" && (item.path.includes("password") || item.path.length === 0));
       throw new HttpError(400, issue?.message ?? "Check your details and try again.");
     }
     const { name, email, password } = parsed.data;

@@ -56,6 +56,18 @@ test("registration diagnoses origin, secrets, database initialization and connec
   }
 });
 
+test("registration rejects unknown fields without echoing their names", async () => {
+  process.env.APP_ORIGIN = origin;
+  process.env.VERCEL_ENV = "production";
+  const unknownField = "fixture-token-that-must-not-be-reflected";
+  const response = await registerIdentity(new Request(origin + "/api/identity/register", {
+    method: "POST", headers: { Origin: origin, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...body, [unknownField]: true }),
+  }));
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "Check your details and try again." });
+});
+
 test("diagnostics preserve safe SQLSTATE and Better Auth status without logging messages or metadata", async t => {
   const logs: string[] = [];
   t.mock.method(console, "error", (value: string) => logs.push(value));

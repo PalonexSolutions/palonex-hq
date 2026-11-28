@@ -1,6 +1,6 @@
 # Testing guide
 
-Run the following from the repository root.
+Run the following from the repository root. All suites run locally. Browser tests serve the production build on loopback, and database-backed tests use disposable local PostgreSQL with synthetic data and paused mail workers.
 
 ```sh
 npm run lint
@@ -27,14 +27,14 @@ npm run test:unit
 npm run test:integration
 npm run build
 DATABASE_URL="$TEST_DATABASE_URL" APP_ORIGIN=http://127.0.0.1:3100 \
-  ENQUIRY_SIGNING_SECRET="$(openssl rand -hex 32)" npm test
+  MAIL_WORKERS_ENABLED=false ENQUIRY_SIGNING_SECRET="$(openssl rand -hex 32)" npm test
 ```
 
 The integration suite tests database writes and rollbacks, concurrency, filtering, status transitions and the email outbox with a mock provider. The browser suite uses PostgreSQL for submission tests when `TEST_DATABASE_URL` is present. Keep this database separate from development and production data.
 
 ## Registration database failure and recovery
 
-Run these tests on a disposable PostgreSQL instance with port 3101 free for the built app. The tests temporarily revoke individual runtime INSERT grants and restore them in `finally`. Use a fresh container and never point the suite at a database shared with another test run.
+Run these tests on a disposable local PostgreSQL instance with port 3101 free for the built app. The tests temporarily revoke individual runtime INSERT grants and restore them in `finally`. Use a fresh container and never point the suite at a database shared with another test run.
 
 ```sh
 docker run -d --rm --name palonex-registration-regression -p 127.0.0.1:55441:5432 \
