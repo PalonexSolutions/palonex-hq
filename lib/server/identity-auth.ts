@@ -7,13 +7,13 @@ import { getDatabase, transaction } from "./database.ts";
 import { identityConfig, identityKey } from "./identity-config.ts";
 import { enqueueIdentityEmail } from "./identity-mail.ts";
 import { trustedClientIp } from "./deployment.ts";
+import { captureRegistrationAuthError } from "./registration-diagnostics.ts";
 import { HttpError } from "./http.ts";
 
-function buildIdentityAuth() {
-  const { secret, origin, secure } = identityConfig();
+function buildIdentityAuth({ secret, origin, secure } = identityConfig(), pool = getDatabase()) {
   return betterAuth({
     appName: "PaLoNex Accounts", baseURL: origin, trustedOrigins: [origin], secret, basePath: "/api/identity/engine",
-    database: { dialect: new PostgresDialect({ pool: getDatabase() }), type: "postgres", schemaName: "palonex_private", transaction: true },
+    database: { dialect: new PostgresDialect({ pool }), type: "postgres", schemaName: "palonex_private", transaction: true },
     user: { modelName: "identity_user", additionalFields: {
       consentVersion: { type: "string", required: true },
       consentedAt: { type: "date", required: true },
@@ -38,12 +38,14 @@ function buildIdentityAuth() {
       ipAddress: { disableIpTracking: true },
     },
     rateLimit: { enabled: false },
-    logger: { disabled: true },
+    logger: { level: "error", log: (_level, _message, ...args) => captureRegistrationAuthError(...args) },
   });
 }
 
 let auth: ReturnType<typeof buildIdentityAuth> | undefined;
-export function identityAuth() { return auth ??= buildIdentityAuth(); }
+export function identityAuth(config?: ReturnType<typeof identityConfig>, pool?: ReturnType<typeof getDatabase>) {
+  return auth ??= buildIdentityAuth(config, pool);
+}
 
 export function hasPublicCookie(headers: Headers) {
   return (headers.get("cookie") ?? "").split(";")
