@@ -15,7 +15,8 @@
     "test:integration": "node --conditions=react-server --test tests/integration/*.test.ts",
     "admin:staff": "node --conditions=react-server --env-file-if-exists=.env --env-file-if-exists=.env.local db/admin.ts",
     "db:status": "npm run db:migrate -- status",
-    "deploy:check": "node --conditions=react-server db/ops/check-config.ts"
+    "deploy:check": "node --conditions=react-server db/ops/check-config.ts",
+    "test:registration-endpoint": "node --test tests/integration/registration-endpoint.spec.ts"
   },
   "engines": {
     "node": "24.x"
