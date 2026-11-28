@@ -57,4 +57,4 @@ One public identity directory issues stable UUIDs for future application records
 
 ## Hosted deployment
 
-Vercel uses the native Next.js configuration and a pinned, TLS-verified Neon pooled endpoint. Operator commands use separate direct credentials, and migrations never run during builds. Hosted origins are explicit per environment. Both scheduled mail routes are authenticated, opt-in and independently monitored. See the [deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) and [operations runbook](PRODUCTION_OPERATIONS_RUNBOOK.md).
+Vercel uses the native Next.js configuration and a pinned, TLS-verified Neon pooled endpoint. Operator commands use separate direct credentials, and migrations never run during builds. Hosted origins are explicit per environment. Both mail worker routes are authenticated and opt-in. The Hobby deployment registers no scheduler, and retention requires a direct operator command. See the [deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) and [operations runbook](PRODUCTION_OPERATIONS_RUNBOOK.md).

@@ -19,12 +19,12 @@ Milestone 7 prepares the first Vercel and Neon deployment for owner-operated pre
 - Built PostgreSQL migrations, private schema, enquiry form, validation, rate limits, consent, server-only enquiry access and a durable email outbox.
 - Built Better Auth staff sign-in, PostgreSQL-backed sessions and login limits, a dashboard, enquiry search and detail views, audited status changes and notes, and read-only notification monitoring.
 - Added public registration, login, verification, password recovery, profile management and audited staff controls for public accounts.
-- Added pooled and direct connection validation, explicit migration verification, scoped database grants, paused cron workers, release CI and the production runbooks.
+- Added pooled and direct connection validation, explicit migration verification, scoped database grants, paused manual workers, release CI and the production runbooks.
 
 ## Partially complete
 
 - Company narrative and initial destination pages. Leadership and approved company copy require founder input.
-- The Resend adapter is implemented. Production delivery and the scheduler await configuration.
+- Both Hobby-incompatible five-minute schedules were removed. Delivery and retention are manual, and scheduled operation remains deferred.
 
 ## Pending
 
@@ -35,7 +35,7 @@ Milestone 7 prepares the first Vercel and Neon deployment for owner-operated pre
 ## Known issues
 
 - Production database and email settings still need provisioning and smoke tests. Staff authentication remains password-based and uses the existing maintenance process for credential recovery. Public roles are ready for future product grants. Cross-origin SSO remains future work.
-- Live Neon, Vercel Cron, production HTTPS, backups and Resend have not been verified.
+- Live Neon, hosted Preview, production HTTPS, backups and Resend have not been verified. Scheduled jobs are disabled, so the release is not production-ready.
 
 ## Environment and decisions
 

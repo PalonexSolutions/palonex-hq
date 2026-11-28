@@ -21,7 +21,7 @@ Follow the [production deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) for Neo
 | GET `/api/enquiries` | Issues a signed form token and minimum wait. Returns no enquiry data. |
 | POST `/api/enquiries` | Requires same-origin JSON, consent and a valid token. Returns a UUID on creation or an identical replay. |
 | GET `/api/health/database` | Returns readiness or a generic 503. |
-| GET `/api/internal/notifications` | Requires scheduler bearer authentication. Processes up to five due deliveries. |
+| GET `/api/internal/notifications` | Requires bearer authentication and explicit mail opt-in. A manual invocation processes up to five due deliveries. |
 
 The token enforces a 2.5-second minimum age and expires after two hours. Identical retries with the same valid token get the original reference. Separate tokens represent separate submissions. Fixed hourly quotas are three per normalized email, 12 per trusted IP or 60 for the shared fallback, and 240 overall. The database stores HMACs for rate-limit keys. These controls reduce abuse but cannot verify mailbox ownership or prove a submitter is human.
 

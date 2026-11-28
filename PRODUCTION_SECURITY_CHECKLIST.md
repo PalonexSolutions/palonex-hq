@@ -25,12 +25,12 @@ Record a commit, environment, reviewer and date for each completed gate. Use syn
 
 ## Production owner gates
 
-- [ ] Verify the actual Vercel Node 24 support, cron plan and schedule. Review approved terms, privacy, retention and staff provisioning.
+- [ ] Verify Vercel Node 24 support and Hobby eligibility. Confirm no cron jobs or external triggers are active. Review approved terms, privacy, retention and staff provisioning.
 - [ ] Establish the Neon recovery point and validate the restore plan. Apply and verify migrations using the direct owner URL and separate runtime/maintenance grants. Verify the pooled runtime role against production with non-destructive checks.
 - [ ] Configure scoped secrets and provider credentials. Confirm the apex certificate and the `www` redirect. Verify HSTS behavior after HTTPS activation.
-- [ ] Verify a protected app deployment, backend readiness, staff sign-in and approved integration tests. Check both queues before enabling mail. Confirm active cron requests are authorized and the external maintenance schedule uses direct credentials.
-- [ ] Approve public traffic and mail dispatch. Record status, deployment and settings without exposing credentials. Stop launch if a required provider, DNS, recovery or smoke check fails.
+- [ ] Verify a protected app deployment, backend readiness, staff sign-in and approved integration tests. Check both queues before enabling mail. Confirm manual worker requests require bearer authentication, and verify any manual retention run uses direct maintenance credentials and `--apply`.
+- [ ] Approve public traffic only after dependable delivery and retention are operational. Record status, deployment and settings without exposing credentials. Stop launch if a required provider, DNS, recovery or smoke check fails.
 
 ## Known limitations
 
-Live Neon TLS, Vercel behavior, hosted cron, HTTPS, Resend acceptance and DNS require owner verification. Local PostgreSQL and PgBouncer checks validate the repository implementation. Five-minute email jobs require a compatible plan or an external scheduler. Recovery objectives are targets until the owner tests a restore. A full script CSP rollout and broader HSTS policy can be evaluated after observing the deployed site.
+Live Neon TLS, Vercel behavior, HTTPS, Resend acceptance and DNS require owner verification. Local PostgreSQL and PgBouncer checks validate the repository implementation. Automated jobs are deferred until a suitable approved no-cost scheduler is available. Daily delivery is incompatible with identity link expiry. Recovery objectives are targets until the owner tests a restore. A full script CSP rollout and broader HSTS policy can be evaluated after observing the deployed site.

@@ -13,18 +13,18 @@ Use Node.js 24 and the committed npm lockfile. The build needs no database conne
 | `PUBLIC_AUTH_SECRET` | Secret, runtime | Local-only | Preview-only | Production-only |
 | `BETTER_AUTH_SECRET` | Secret, runtime | Local staff only | Preview staff only | Separate production staff secret |
 | `ENQUIRY_SIGNING_SECRET` | Secret, runtime | Local-only | Preview-only | Independent production secret |
-| `CRON_SECRET` | Secret, runtime/scheduler | Optional for mock testing | Preview-only for manually triggered test mail | Required for both production cron routes |
-| `MAIL_WORKERS_ENABLED` | Nonsecret, runtime | Unset or `false` | `false` by default | `false` until the owner has reviewed both queues and approved delivery |
+| `CRON_SECRET` | Secret, runtime | Optional for mock testing | Preview-only for manually triggered test mail | Required for authenticated manual invocation |
+| `MAIL_WORKERS_ENABLED` | Nonsecret, runtime | Unset or `false` | `false` by default | `false` by default. Opt in only for an approved manual run |
 | `PREVIEW_MAIL_TO` | Private setting, runtime | Unset | Required to enable preview delivery. Use one controlled test mailbox | Unset |
 | `RESEND_API_KEY` | Secret, runtime | Omit when using mocks | Separate test key when enabling preview mail | Required when workers are enabled |
 | `ENQUIRY_EMAIL_FROM` | Nonsecret, runtime | Optional | Verified test sender | Verified enquiry sender |
 | `ENQUIRY_EMAIL_TO` | Private setting, runtime | Optional | Same approved test mailbox as `PREVIEW_MAIL_TO` | Monitored company inbox |
 | `IDENTITY_EMAIL_FROM` | Nonsecret, runtime | Optional | Verified test sender | Verified identity sender |
 | `ENQUIRY_TRUSTED_IP_HEADER` | Nonsecret, runtime | Optional for a proxy that overwrites it with one IP | Unset. Vercel uses its own forwarded client IP header | Unset. Vercel uses its own forwarded client IP header |
-| `ENQUIRY_RETENTION_DAYS` | Nonsecret, maintenance only | Defaults to 365 | Use the maintenance runner as needed | Defaults to 365. Align with the approved privacy policy |
+| `ENQUIRY_RETENTION_DAYS` | Nonsecret, maintenance only | Defaults to 365 | Manual operator command when needed | Defaults to 365. Align with the approved privacy policy |
 | `VERCEL`, `VERCEL_ENV` | Vercel platform runtime metadata | Unset | Automatically exposed by Vercel | Automatically exposed by Vercel |
 
-Secrets for direct connections stay off Vercel. Choose the schema-owner URL for migrations and staff provisioning, and the restricted maintenance URL for pruning. Use separate database role passwords and avoid exporting URLs in logs or shell traces.
+No automatic email or retention jobs are configured. Retention requires `npm run db:prune -- --apply` on the operator machine. Secrets for direct connections stay off Vercel. Choose the schema-owner URL for migrations and staff provisioning, and the restricted maintenance URL for pruning. Use separate database role passwords and avoid exporting URLs in logs or shell traces.
 
 For an offline runtime configuration check, load the target's runtime values securely into your process and run `VERCEL_ENV=preview npm run deploy:check` or `VERCEL_ENV=production npm run deploy:check`. The command validates shape, branch pin, independent secrets and selected worker settings. It does not connect to a database or print values. Run database operator commands in a separate shell with Vercel metadata unset. The preview host exclusion depends on configuring the real production endpoint correctly. Confirm both endpoints independently in Neon before deploying.
 

@@ -17,7 +17,7 @@ test("public pages and private endpoints return their security headers", async (
   }
 });
 
-test("both scheduled routes refuse anonymous and invalid requests and pause before delivery", async ({ request }) => {
+test("both manual worker routes refuse anonymous and invalid requests and pause before delivery", async ({ request }) => {
   for (const path of ["/api/internal/notifications", "/api/internal/identity-mail"]) {
     const denied = await request.get(path);
     expect(denied.status()).toBe(401);

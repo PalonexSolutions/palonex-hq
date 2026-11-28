@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { applicationOrigin, operatorDatabaseUrl, runtimeDatabaseUrl, trustedClientIp } from "../../lib/server/deployment.ts";
@@ -70,4 +72,21 @@ test("mail workers require bearer authentication, opt in and enforce the preview
   await assert.rejects(preview.send(message, "test-key"));
   await preview.send({ ...message, to: "allowed@example.test" }, "test-key");
   assert.deepEqual(accepted, ["allowed@example.test"]);
+});
+
+test("Vercel config registers no automatic worker schedules", () => {
+  const config = JSON.parse(readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"));
+  assert.equal(config.crons, undefined);
+});
+
+test("retention pauses before opening a database unless explicitly applied", () => {
+  const run = (args: string[]) => spawnSync(process.execPath, ["--conditions=react-server", "db/prune.ts", ...args], {
+    encoding: "utf8", env: { NODE_ENV: "test", PATH: process.env.PATH },
+  });
+  const paused = run([]);
+  assert.equal(paused.status, 0, paused.stderr);
+  assert.equal(JSON.parse(paused.stdout).event, "database.retention_paused");
+  const invalid = run(["--unknown"]);
+  assert.equal(invalid.status, 1);
+  assert.match(invalid.stderr, /Usage/);
 });
