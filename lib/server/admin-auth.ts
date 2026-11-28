@@ -1,24 +1,19 @@
 import "server-only";
 import { createHmac, randomUUID } from "node:crypto";
-import { isIP } from "node:net";
 import { betterAuth } from "better-auth";
 import { hashPassword } from "better-auth/crypto";
 import { PostgresDialect } from "kysely";
 import { z } from "zod";
 import { staffEmail } from "../../features/admin/schema.ts";
 import { getDatabase, transaction } from "./database.ts";
+import { applicationOrigin, trustedClientIp } from "./deployment.ts";
 import { HttpError } from "./http.ts";
 
 function config() {
   const secret = process.env.BETTER_AUTH_SECRET;
-  const origin = process.env.APP_ORIGIN;
-  if (!secret || secret.length < 32 || !origin) throw new HttpError(503, "Administrator sign-in is not configured.");
-  const address = new URL(origin);
-  const secure = address.protocol === "https:";
-  if (address.origin !== origin || (!secure && (address.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(address.hostname)))) {
-    throw new HttpError(503, "Administrator sign-in requires a configured HTTPS origin.");
-  }
-  return { secret, origin, secure };
+  if (!secret || secret.length < 32 || secret === process.env.PUBLIC_AUTH_SECRET)
+    throw new HttpError(503, "Administrator sign-in is not configured.");
+  return { secret, ...applicationOrigin() };
 }
 
 function buildAuth() {
@@ -26,6 +21,7 @@ function buildAuth() {
   return betterAuth({
     appName: "PaLoNex HQ Admin",
     baseURL: origin,
+    trustedOrigins: [origin],
     secret,
     database: { dialect: new PostgresDialect({ pool: getDatabase() }), type: "postgres", schemaName: "palonex_private" },
     user: { modelName: "admin_user" },
@@ -58,9 +54,8 @@ export async function requireAdmin(headers: Headers) {
 
 export async function limitLogin(request: Request, email: string) {
   const { secret } = config();
-  const header = process.env.ENQUIRY_TRUSTED_IP_HEADER || (process.env.VERCEL === "1" ? "x-vercel-forwarded-for" : "");
-  const value = header ? request.headers.get(header)?.trim() || "" : "";
-  const keys = [[`account:${email}`, 10], [isIP(value) ? `ip:${value}` : "shared", isIP(value) ? 25 : 80], ["global", 200]] as const;
+  const value = trustedClientIp(request);
+  const keys = [[`account:${email}`, 10], [value ? `ip:${value}` : "shared", value ? 25 : 80], ["global", 200]] as const;
   await transaction(async client => {
     for (const [key, limit] of keys) {
       const digest = createHmac("sha256", secret).update("admin-login\0").update(key).digest("base64url");
@@ -73,7 +68,7 @@ export async function limitLogin(request: Request, email: string) {
   });
 }
 
-export async function provisionAdmin(email: string, name: string, password: string) {
+export async function provisionAdmin(email: string, name: string, password: string, pool = getDatabase()) {
   const validEmail = staffEmail.parse(email);
   const validName = z.string().trim().min(2).max(100).parse(name);
   const validPassword = z.string().min(14).max(128).parse(password);
@@ -87,11 +82,11 @@ export async function provisionAdmin(email: string, name: string, password: stri
       INSERT INTO palonex_private.admin_account (id,"accountId","providerId","userId",password,"createdAt","updatedAt")
       VALUES ($1,$2,'credential',$2,$3,now(),now())`, [randomUUID(), id, hash]);
     await client.query("INSERT INTO palonex_private.admin_staff (user_id) VALUES ($1)", [id]);
-  });
+  }, pool);
   return id;
 }
 
-export async function disableAdmin(email: string) {
+export async function disableAdmin(email: string, pool = getDatabase()) {
   const validEmail = staffEmail.parse(email);
   return transaction(async client => {
     const { rows } = await client.query<{ user_id: string }>(`
@@ -100,5 +95,5 @@ export async function disableAdmin(email: string) {
     if (!rows[0]) return false;
     await client.query('DELETE FROM palonex_private.admin_session WHERE "userId"=$1', [rows[0].user_id]);
     return true;
-  });
+  }, pool);
 }

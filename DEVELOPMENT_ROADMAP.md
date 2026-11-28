@@ -7,3 +7,5 @@
 5. Phase 4 delivered the PostgreSQL backend, enquiry flow and notification queue. Production activation requires provider configuration and smoke checks.
 6. Phase 5 delivered staff authentication, enquiry management, audit history and outbox monitoring. Production staff provisioning and deployment checks remain open.
 7. Phase 6 delivered public HQ accounts, verification and recovery, profile management and audited account administration. Next, validate production mail and sign-in before adding product-specific entitlements.
+
+8. Phase 7 prepared release engineering for Vercel and Neon. Owner-operated preview, production configuration, recovery verification and launch approval are next.

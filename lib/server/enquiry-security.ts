@@ -1,6 +1,6 @@
 import "server-only";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
-import { isIP } from "node:net";
+import { applicationOrigin, trustedClientIp } from "./deployment.ts";
 import { HttpError } from "./http.ts";
 
 const tokenLifetime = 2 * 60 * 60 * 1000;
@@ -39,17 +39,14 @@ export function checkToken(token: string, now = Date.now()) {
 }
 
 export function checkOrigin(request: Request) {
-  const expected = process.env.APP_ORIGIN;
-  if (!expected || new URL(expected).origin !== expected) throw new Error("Configure APP_ORIGIN as a canonical origin.");
+  const { origin: expected } = applicationOrigin();
   if (request.headers.get("origin") !== expected || request.headers.get("sec-fetch-site") === "cross-site") {
     throw new HttpError(403, "This submission must come from the PaLoNex website.");
   }
 }
 
 export function rateKeys(request: Request, email: string) {
-  const trusted = process.env.ENQUIRY_TRUSTED_IP_HEADER || (process.env.VERCEL === "1" ? "x-vercel-forwarded-for" : "");
-  const value = (trusted && request.headers.get(trusted)?.trim()) || "";
-  const ip = isIP(value) ? value : "";
+  const ip = trustedClientIp(request);
   return [
     { key: sign("email-rate", email), limit: 3 },
     { key: sign("network-rate", ip || "shared"), limit: ip ? 12 : 60 },

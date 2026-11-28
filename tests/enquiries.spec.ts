@@ -55,7 +55,7 @@ test("HTTP contract rejects abuse and deduplicates persistent submissions", asyn
     const tokens = await Promise.all(Array.from({ length: 4 }, async () => {
       const response = await request.get("/api/enquiries");
       expect(response.ok()).toBe(true);
-      expect(response.headers()["cache-control"]).toBe("no-store");
+      expect(response.headers()["cache-control"]).toBe("private, no-store");
       const body = await response.json();
       expect(Object.keys(body).sort()).toEqual(["minimumWaitMs", "token"]);
       return body as { token: string; minimumWaitMs: number };

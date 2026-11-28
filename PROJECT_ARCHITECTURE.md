@@ -53,3 +53,8 @@ The dashboard reads real enquiry and outbox aggregates. Private search uses boun
 ## Public identity
 
 One public identity directory issues stable UUIDs for future application records. HQ uses the existing Better Auth engine with a distinct public realm so existing staff credentials and sessions remain isolated. Public login requires verified email and active status. Email verification and password recovery use encrypted, single-use links queued in PostgreSQL and delivered through the shared Resend provider. See [identity architecture](IDENTITY_ARCHITECTURE.md) and [user auth setup](USER_AUTH_SETUP.md).
+
+
+## Hosted deployment
+
+Vercel uses the native Next.js configuration and a pinned, TLS-verified Neon pooled endpoint. Operator commands use separate direct credentials, and migrations never run during builds. Hosted origins are explicit per environment. Both mail worker routes are authenticated and opt-in. The Hobby deployment registers no scheduler, and retention requires a direct operator command. See the [deployment guide](PRODUCTION_DEPLOYMENT_GUIDE.md) and [operations runbook](PRODUCTION_OPERATIONS_RUNBOOK.md).
