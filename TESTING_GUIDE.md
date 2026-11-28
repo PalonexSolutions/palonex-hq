@@ -31,3 +31,26 @@ DATABASE_URL="$TEST_DATABASE_URL" APP_ORIGIN=http://127.0.0.1:3100 \
 ```
 
 The integration suite tests database writes and rollbacks, concurrency, filtering, status transitions and the email outbox with a mock provider. The browser suite uses PostgreSQL for submission tests when `TEST_DATABASE_URL` is present. Keep this database separate from development and production data.
+
+## Registration database failure and recovery
+
+Run these tests on a disposable PostgreSQL instance with port 3101 free for the built app. The tests temporarily revoke individual runtime INSERT grants and restore them in `finally`. Use a fresh container and never point the suite at a database shared with another test run.
+
+```sh
+docker run -d --rm --name palonex-registration-regression -p 127.0.0.1:55441:5432 \
+  -e POSTGRES_USER=palonex -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -e POSTGRES_DB=palonex_registration_regression postgres:17
+# Wait for pg_isready to report accepting connections.
+docker exec palonex-registration-regression pg_isready -h 127.0.0.1 -U palonex -d palonex_registration_regression
+export REGISTRATION_TEST_DATABASE_URL=postgresql://palonex@127.0.0.1:55441/palonex_registration_regression
+DATABASE_URL_UNPOOLED="$REGISTRATION_TEST_DATABASE_URL" npm run db:migrate
+docker exec palonex-registration-regression psql -U palonex -d palonex_registration_regression \
+  -v ON_ERROR_STOP=1 -c 'CREATE ROLE palonex_runtime LOGIN; CREATE ROLE palonex_maintenance LOGIN;'
+docker exec -i palonex-registration-regression psql -U palonex -d palonex_registration_regression \
+  -v ON_ERROR_STOP=1 < db/ops/grants.sql
+npm run build
+npm run test:registration-endpoint
+docker stop palonex-registration-regression
+```
+
+The suite starts Next.js in production mode with the restricted runtime role and paused mail workers. It submits the verification link from the local encrypted fixture directly to the verification endpoint.

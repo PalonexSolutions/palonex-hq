@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { consentVersion, forms } from "@/features/identity/schema";
+import { forms } from "@/features/identity/schema";
 import { checkOrigin } from "@/lib/server/enquiry-security";
 import { getDatabase } from "@/lib/server/database";
 import { currentIdentity, identityAuth, limitIdentity, requireIdentity } from "@/lib/server/identity-auth";
+import { registerIdentity } from "@/lib/server/register-identity";
 import { consumeIdentityLink } from "@/lib/server/identity-mail";
 import { handleError, HttpError, json, readJson } from "@/lib/server/http";
 
@@ -38,9 +39,10 @@ export async function GET(request: Request, { params }: Props) {
 }
 
 export async function POST(request: Request, { params }: Props) {
+  const { operation } = await params;
+  if (operation === "register") return registerIdentity(request);
   try {
     checkOrigin(request);
-    const { operation } = await params;
     const auth = identityAuth().api;
     const headers = request.headers;
 
@@ -50,75 +52,6 @@ export async function POST(request: Request, { params }: Props) {
       return cookies(checked(await auth.signOut({ headers, asResponse: true }), "Sign-out could not be completed."));
     }
     const payload = await readJson(request, 6500);
-    
-    if (operation === "register") {
-      const { name, email, password } = parse(forms.register, payload);
-
-      let stage = "rate_limit";
-
-      try {
-        await limitIdentity(request, operation, email);
-
-        stage = "signup";
-        const response = await auth.signUpEmail({
-          body: {
-            name,
-            email,
-            password,
-            consentVersion,
-            consentedAt: new Date(),
-          },
-          headers,
-          asResponse: true,
-        });
-
-        if (!response.ok) {
-          stage = "duplicate_check";
-
-          if (
-            response.status !== 422 ||
-            !(await getDatabase().query(
-              "SELECT 1 FROM palonex_private.identity_user WHERE email=$1",
-              [email]
-            )).rowCount
-          ) {
-            console.error(JSON.stringify({
-              event: "identity.registration_failed",
-              stage,
-              authStatus: response.status,
-            }));
-            throw new Error("Registration failed.");
-          }
-        }
-
-        stage = "verification_queue";
-
-        checked(
-          await auth.sendVerificationEmail({
-            body: { email },
-            asResponse: true,
-          }),
-          "Verification could not be queued."
-        );
-
-        return json({ ok: true }, 202);
-      } catch (error) {
-        const dbError = error as {
-          code?: string;
-          name?: string;
-        };
-
-        console.error(JSON.stringify({
-          event: "identity.registration_failed",
-          stage,
-          errorName: dbError?.name ?? "UnknownError",
-          databaseCode: dbError?.code ?? null,
-        }));
-
-        throw error;
-      }
-    }
-
     if (operation === "login") {
       const body = parse(forms.login, payload);
       await limitIdentity(request, operation, body.email);

@@ -1,12 +1,12 @@
 import "server-only";
 import { createHmac } from "node:crypto";
-import { applicationOrigin } from "./deployment.ts";
-import { HttpError } from "./http.ts";
+import { applicationOrigin, ConfigurationError } from "./deployment.ts";
 
 export function identityConfig() {
   const secret = process.env.PUBLIC_AUTH_SECRET;
-  if (!secret || secret.length < 32 || secret === process.env.BETTER_AUTH_SECRET)
-    throw new HttpError(503, "Public accounts are temporarily unavailable.");
+  if (!secret) throw new ConfigurationError("public_auth_secret_missing");
+  if (secret.length < 32) throw new ConfigurationError("public_auth_secret_short");
+  if (secret === process.env.BETTER_AUTH_SECRET) throw new ConfigurationError("public_auth_secret_shared");
   return { secret, ...applicationOrigin() };
 }
 

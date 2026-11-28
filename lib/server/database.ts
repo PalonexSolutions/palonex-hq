@@ -1,6 +1,6 @@
 import "server-only";
 import pg, { type PoolClient } from "pg";
-import { deploymentStage, operatorDatabaseUrl, runtimeDatabaseUrl } from "./deployment.ts";
+import { ConfigurationError, deploymentStage, operatorDatabaseUrl, runtimeDatabaseUrl } from "./deployment.ts";
 
 const globalDatabase = globalThis as typeof globalThis & { palonexDatabase?: pg.Pool };
 
@@ -9,7 +9,7 @@ export function getDatabase() {
   const connectionString = runtimeDatabaseUrl();
   const stage = deploymentStage();
   const max = Number(process.env.DATABASE_POOL_MAX || (stage === "local" ? 3 : 2));
-  if (!Number.isInteger(max) || max < 1 || max > (stage === "local" ? 20 : 5)) throw new Error("Invalid database pool size.");
+  if (!Number.isInteger(max) || max < 1 || max > (stage === "local" ? 20 : 5)) throw new ConfigurationError("database_pool_size_invalid");
   const pool = new pg.Pool({
     connectionString, max, enableChannelBinding: true, connectionTimeoutMillis: 4000, idleTimeoutMillis: 5000,
     query_timeout: 6000, allowExitOnIdle: true,

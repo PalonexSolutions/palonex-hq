@@ -4,16 +4,34 @@ import { isIP } from "node:net";
 export const canonicalOrigin = "https://palonexsolutions.in";
 export type Environment = Readonly<Record<string, string | undefined>>;
 
+export type ConfigurationIssue =
+  | "vercel_metadata" | "app_origin_missing" | "app_origin_invalid" | "database_url_invalid"
+  | "direct_credentials_at_runtime" | "database_pooler_required" | "database_role_invalid"
+  | "database_tls_or_parameters_invalid" | "database_host_mismatch" | "preview_database_not_isolated"
+  | "database_pool_size_invalid" | "public_auth_secret_missing" | "public_auth_secret_short" | "public_auth_secret_shared";
+
+export class ConfigurationError extends Error {
+  readonly issue: ConfigurationIssue;
+
+  constructor(issue: ConfigurationIssue) {
+    super("Runtime configuration is invalid.");
+    this.name = "ConfigurationError";
+    this.issue = issue;
+  }
+}
+
 export function deploymentStage(env: Environment = process.env) {
   if (env.VERCEL_ENV === "production" || env.VERCEL_ENV === "preview") return env.VERCEL_ENV;
-  if (env.VERCEL === "1" && env.VERCEL_ENV !== "development") throw new Error("Vercel environment metadata is required.");
+  if (env.VERCEL === "1" && env.VERCEL_ENV !== "development") throw new ConfigurationError("vercel_metadata");
   return "local";
 }
 
 export function applicationOrigin(env: Environment = process.env) {
   const origin = env.APP_ORIGIN;
-  if (!origin) throw new Error("APP_ORIGIN is required.");
-  const parsed = new URL(origin);
+  if (!origin) throw new ConfigurationError("app_origin_missing");
+  let parsed: URL;
+  try { parsed = new URL(origin); }
+  catch { throw new ConfigurationError("app_origin_invalid"); }
   const stage = deploymentStage(env);
   const secure = parsed.protocol === "https:";
   const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname);
@@ -21,7 +39,7 @@ export function applicationOrigin(env: Environment = process.env) {
   if (parsed.origin !== origin || (!secure && (parsed.protocol !== "http:" || !loopback))
     || (stage === "production" && origin !== canonicalOrigin)
     || (stage === "preview" && (!secure || loopback || productionHost))) {
-    throw new Error("APP_ORIGIN is invalid for the deployment environment.");
+    throw new ConfigurationError("app_origin_invalid");
   }
   return { origin, secure };
 }
@@ -34,7 +52,7 @@ function databaseUrl(value: string | undefined) {
       || url.searchParams.has("host") || url.searchParams.has("hostaddr")) throw new Error();
     return url;
   } catch {
-    throw new Error("A valid PostgreSQL connection URL is required.");
+    throw new ConfigurationError("database_url_invalid");
   }
 }
 
@@ -46,22 +64,22 @@ function verifiedTls(url: URL) {
   const keys = [...url.searchParams.keys()];
   if ((url.port && url.port !== "5432") || url.searchParams.get("sslmode") !== "verify-full"
     || keys.some(key => !supported.has(key) || url.searchParams.getAll(key).length !== 1)) {
-    throw new Error("Neon requires port 5432, sslmode=verify-full and no connection overrides.");
+    throw new ConfigurationError("database_tls_or_parameters_invalid");
   }
 }
 
 export function runtimeDatabaseUrl(env: Environment = process.env) {
   const url = databaseUrl(env.DATABASE_URL);
   const stage = deploymentStage(env);
-  if (env.DATABASE_URL_UNPOOLED && stage !== "local") throw new Error("Direct database credentials belong in the operator environment.");
+  if (env.DATABASE_URL_UNPOOLED && stage !== "local") throw new ConfigurationError("direct_credentials_at_runtime");
   if (stage !== "local" || neonHost(url.hostname)) {
-    if (!poolerHost(url.hostname)) throw new Error("Use a Neon pooled URL at runtime.");
-    if (stage !== "local" && url.username !== "palonex_runtime") throw new Error("Use the restricted Neon runtime role.");
+    if (!poolerHost(url.hostname)) throw new ConfigurationError("database_pooler_required");
+    if (stage !== "local" && url.username !== "palonex_runtime") throw new ConfigurationError("database_role_invalid");
     verifiedTls(url);
   }
-  if (stage !== "local" && url.hostname !== env.NEON_RUNTIME_HOST) throw new Error("The runtime database host does not match this deployment.");
+  if (stage !== "local" && url.hostname !== env.NEON_RUNTIME_HOST) throw new ConfigurationError("database_host_mismatch");
   if (stage === "preview" && (!poolerHost(env.NEON_PRODUCTION_HOST ?? "") || url.hostname === env.NEON_PRODUCTION_HOST)) {
-    throw new Error("Preview requires a separate Neon endpoint and the production host exclusion.");
+    throw new ConfigurationError("preview_database_not_isolated");
   }
   return env.DATABASE_URL!;
 }
